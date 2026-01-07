@@ -1,0 +1,7 @@
+{
+  "name": "AngelChoir - Quản Lý Ca Đoàn",
+  "description": "Hệ thống quản lý ca đoàn hiện đại với các tính năng quản lý thành viên, lịch tập, điểm danh và báo cáo thống kê chuyên sâu.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

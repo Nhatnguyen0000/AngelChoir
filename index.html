@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AngelChoir - Flight Grade Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      body { 
+        background-color: #E2EAE9; 
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        overflow: hidden; 
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-thumb { background: #354E4D; border-radius: 10px; }
+      
+      /* Font dành cho in ấn báo cáo */
+      @media print {
+        .font-report { font-family: 'Times New Roman', Times, serif !important; }
+      }
+
+      /* Lớp phủ ẩn cho export PDF */
+      #pdf-export-container {
+        position: absolute;
+        left: -9999px;
+        top: -9999px;
+        width: 800px;
+        background: white;
+      }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@^19.2.3",
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+        "recharts": "https://esm.sh/recharts@^3.6.0",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "xlsx": "https://esm.sh/xlsx@0.18.5",
+        "jspdf": "https://esm.sh/jspdf@2.5.1",
+        "html2canvas": "https://esm.sh/html2canvas@1.4.1"
+      }
+    }
+    </script>
+  </head>
+  <body class="antialiased h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+    <!-- Container ẩn để render mẫu PDF -->
+    <div id="pdf-export-container"></div>
+  </body>
+</html>
