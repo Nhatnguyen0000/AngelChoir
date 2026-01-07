@@ -1,9 +1,10 @@
 
-import { ThanhVien, LichTap, User, Role, Status, Gender, MemberRole, Song, SystemNotice } from './types';
+import { ThanhVien, LichTap, User, Role, Status, Gender, MemberRole, Song, SystemNotice, Transaction } from './types';
 
 const INITIAL_MEMBERS: ThanhVien[] = [];
 const INITIAL_SCHEDULES: LichTap[] = [];
 const INITIAL_SONGS: Song[] = [];
+const INITIAL_TRANSACTIONS: Transaction[] = [];
 
 export const getMembers = (): ThanhVien[] => {
   const data = localStorage.getItem('members');
@@ -12,6 +13,15 @@ export const getMembers = (): ThanhVien[] => {
 
 export const saveMembers = (members: ThanhVien[]) => {
   localStorage.setItem('members', JSON.stringify(members));
+};
+
+export const getTransactions = (): Transaction[] => {
+  const data = localStorage.getItem('transactions');
+  return data ? JSON.parse(data) : INITIAL_TRANSACTIONS;
+};
+
+export const saveTransactions = (transactions: Transaction[]) => {
+  localStorage.setItem('transactions', JSON.stringify(transactions));
 };
 
 export const getSchedules = (): LichTap[] => {
@@ -55,17 +65,6 @@ export const saveNotice = (notice: SystemNotice) => {
   localStorage.setItem('system_notice', JSON.stringify(notice));
 };
 
-export const loginUser = (user: User) => {
-  localStorage.setItem('user', JSON.stringify(user));
-};
-
-export const updateUserProfile = (fullName: string, avatarUrl?: string) => {
-  const user = getCurrentUser();
-  user.fullName = fullName;
-  if (avatarUrl) user.avatar = avatarUrl;
-  loginUser(user);
-};
-
 export const getCurrentUser = (): User => {
   const user = localStorage.getItem('user');
   if (user) {
@@ -83,36 +82,57 @@ export const getCurrentUser = (): User => {
   };
 };
 
-// Advanced: Export/Import Logic
+/**
+ * Fix: Added missing loginUser function to persist user session.
+ */
+export const loginUser = (user: User) => {
+  localStorage.setItem('user', JSON.stringify(user));
+};
+
+/**
+ * Fix: Added missing updateUserProfile function to update current user metadata.
+ */
+export const updateUserProfile = (fullName: string, avatar?: string) => {
+  const user = getCurrentUser();
+  const updatedUser = { ...user, fullName, avatar };
+  localStorage.setItem('user', JSON.stringify(updatedUser));
+};
+
+/**
+ * Fix: Added missing exportSystemData function to generate a downloadable JSON backup.
+ */
 export const exportSystemData = () => {
   const data = {
     members: getMembers(),
+    transactions: getTransactions(),
     schedules: getSchedules(),
     songs: getSongs(),
-    config: {
-      springColor: getSpringColor(),
-      theme: localStorage.getItem('theme') || 'light',
-      notice: getNotice()
-    },
-    version: '2.0.0',
-    exportDate: new Date().toISOString()
+    notice: getNotice(),
+    user: getCurrentUser(),
+    springPrimaryColor: getSpringColor()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `angelchoir_backup_${new Date().getTime()}.json`;
-  a.click();
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `AngelChoir_Backup_${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
 };
 
-export const importSystemData = (jsonData: string): boolean => {
+/**
+ * Fix: Added missing importSystemData function to restore system state from a JSON string.
+ */
+export const importSystemData = (jsonString: string): boolean => {
   try {
-    const data = JSON.parse(jsonData);
+    const data = JSON.parse(jsonString);
     if (data.members) saveMembers(data.members);
+    if (data.transactions) saveTransactions(data.transactions);
     if (data.schedules) saveSchedules(data.schedules);
     if (data.songs) saveSongs(data.songs);
-    if (data.config?.springColor) saveSpringColor(data.config.springColor);
-    if (data.config?.notice) saveNotice(data.config.notice);
+    if (data.notice) saveNotice(data.notice);
+    if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+    if (data.springPrimaryColor) localStorage.setItem('springPrimaryColor', data.springPrimaryColor);
     return true;
   } catch (e) {
     console.error('Import failed', e);

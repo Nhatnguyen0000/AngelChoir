@@ -9,18 +9,27 @@ export enum MemberRole {
   CaVien = 'Ca viên'
 }
 
+export interface VoiceSkills {
+  range: number;      // 1-10
+  technique: number;  // 1-10
+  musicTheory: number; // 1-10
+  sightReading: number; // 1-10
+}
+
 export type Theme = 'light' | 'dark' | 'spring';
 
 export interface ThanhVien {
   id: number;
   tenThanh: string;
   hoTen: string;
-  ngaySinh: string;
+  ngaySinh: string; // Định dạng YYYY-MM-DD
   gioiTinh: Gender;
   queQuan: string;
   soDienThoai: string;
   ngayGiaNhap: string;
   vaiTro: MemberRole;
+  skills?: VoiceSkills;
+  instruments?: string[];
   ghiChu: string;
   trangThai: Status;
   points: number;
@@ -34,11 +43,30 @@ export interface LichTap {
   thanhVienThamGia: number[];
 }
 
+export interface Transaction {
+  id: number;
+  date: string;
+  amount: number;
+  type: 'income' | 'expense';
+  category: string;
+  description: string;
+  memberId?: number;
+}
+
+export interface Message {
+  role: 'user' | 'model';
+  content: string;
+  thought?: string;
+  sources?: { title: string; uri: string }[];
+  timestamp: number;
+}
+
 export interface Song {
   id: number;
   title: string;
   composer: string;
   category: string;
+  sheetMusicUrl?: string;
 }
 
 export interface User {
