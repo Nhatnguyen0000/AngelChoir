@@ -5,7 +5,7 @@ import {
   Search, Filter, Cake, Gift,
   Phone, Calendar, UserCheck, Users,
   Heart, MapPin, UserPlus, Info, ShieldCheck, Contact2, Fingerprint,
-  StickyNote
+  StickyNote, Camera
 } from 'lucide-react';
 import { getMembers, saveMembers, getSpringColor } from '../store';
 import { ThanhVien, MemberRole, Status, Gender } from '../types';
@@ -129,8 +129,9 @@ const Members: React.FC = () => {
 
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
-  // Common input classes for consistency
-  const inputClasses = "w-full px-6 py-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-300 dark:border-slate-700 outline-none font-bold text-slate-700 dark:text-white shadow-sm focus:border-slate-800 dark:focus:border-slate-200 focus:ring-4 focus:ring-slate-200 dark:focus:ring-slate-800/50 transition-all placeholder:text-slate-300";
+  // Optimized Input Classes: Bold Borders, readable text, clear focus state
+  const inputClasses = "w-full px-5 py-3 bg-white dark:bg-slate-950 rounded-xl border border-slate-300 dark:border-slate-700 outline-none font-bold text-sm text-slate-800 dark:text-white shadow-sm focus:border-slate-800 dark:focus:border-slate-200 focus:ring-4 focus:ring-slate-200 dark:focus:ring-slate-800/50 transition-all placeholder:text-slate-300";
+  const labelClasses = "text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1.5 block";
 
   return (
     <div className="space-y-8 pb-32 max-w-[1600px] mx-auto animate-in fade-in duration-700 px-4">
@@ -290,117 +291,131 @@ const Members: React.FC = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 animate-in fade-in duration-500">
-           <div className="bg-white dark:bg-slate-950 w-full max-w-5xl rounded-[4rem] shadow-2xl relative border border-white/20 p-8 lg:p-14 animate-in zoom-in-95 duration-500 overflow-y-auto max-h-[95vh] no-scrollbar">
-              <button onClick={() => setIsModalOpen(false)} className="absolute top-10 right-10 p-5 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-3xl hover:bg-red-500 hover:text-white transition-all shadow-xl z-10"><X size={26} /></button>
+           <div className="bg-white dark:bg-slate-950 w-full max-w-4xl rounded-[4rem] shadow-2xl relative border border-white/20 p-8 lg:p-10 animate-in zoom-in-95 duration-500 overflow-y-auto max-h-[95vh] no-scrollbar">
+              <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-3xl hover:bg-red-500 hover:text-white transition-all shadow-lg z-10"><X size={24} /></button>
               
-              <div className="flex items-center gap-6 mb-12">
-                 <div style={{ backgroundColor: isSpring ? springColor : '#0F172A' }} className="w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shrink-0">
-                    <Fingerprint size={40} />
+              <div className="flex items-center gap-5 mb-8">
+                 <div style={{ backgroundColor: isSpring ? springColor : '#0F172A' }} className="w-16 h-16 rounded-[1.8rem] flex items-center justify-center text-white shadow-xl shrink-0">
+                    <Fingerprint size={32} />
                  </div>
                  <div>
-                   <h3 className="text-4xl font-black uppercase tracking-tighter dark:text-white leading-none">
+                   <h3 className="text-3xl font-black uppercase tracking-tighter dark:text-white leading-none">
                      {editingMember ? 'Cập Nhật Hồ Sơ' : 'Thêm Thành Viên'}
                    </h3>
-                   {/* Updated subtitle here */}
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Hệ Thống Quản Lý Ca Đoàn</p>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Hệ Thống Quản Lý Ca Đoàn</p>
                  </div>
               </div>
 
-              <form onSubmit={handleSave} className="space-y-8">
-                 {/* Card 1: Thông tin cá nhân */}
-                 <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-6">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-[#BC8F44] shadow-sm">
-                          <Contact2 size={20} />
+              <form onSubmit={handleSave} className="space-y-6">
+                 
+                 {/* 1. PERSONAL INFO - Full Width Top Section */}
+                 <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-3 mb-6">
+                       <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[#BC8F44] shadow-sm">
+                          <Contact2 size={16} />
                        </div>
-                       <h4 className="text-sm font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">Thông tin cá nhân</h4>
+                       <h4 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">Thông tin cá nhân</h4>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                       <div className="md:col-span-4 space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Tên Thánh</label>
-                          <input type="text" value={formData.tenThanh || ''} className={inputClasses} onChange={e => setFormData({...formData, tenThanh: e.target.value})}/>
+                    <div className="flex flex-col md:flex-row gap-8">
+                       {/* Avatar Placeholder */}
+                       <div className="shrink-0 flex flex-col items-center gap-2">
+                          <div className="w-24 h-32 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-300">
+                             <Camera size={32} />
+                          </div>
+                          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Ảnh thẻ</span>
                        </div>
-                       <div className="md:col-span-8 space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Họ và Tên</label>
-                          <input type="text" required value={formData.hoTen || ''} className={inputClasses} onChange={e => setFormData({...formData, hoTen: e.target.value})}/>
-                       </div>
-                       <div className="md:col-span-6 space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Ngày sinh</label>
-                          <input type="date" value={formData.ngaySinh || ''} className={inputClasses} onChange={e => setFormData({...formData, ngaySinh: e.target.value})}/>
-                       </div>
-                       <div className="md:col-span-6 space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Giới tính</label>
-                          <div className="flex bg-white dark:bg-slate-950 p-1 rounded-[1.5rem] shadow-sm border border-slate-200 dark:border-slate-700">
-                             {Object.values(Gender).map(g => (
-                               <button key={g} type="button" onClick={() => setFormData({...formData, gioiTinh: g})} className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.gioiTinh === g ? 'bg-slate-100 dark:bg-slate-800 shadow-inner text-[#BC8F44]' : 'text-slate-400'}`}>{g}</button>
-                             ))}
+
+                       {/* Inputs */}
+                       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div>
+                             <label className={labelClasses}>Tên Thánh</label>
+                             <input type="text" value={formData.tenThanh || ''} className={inputClasses} onChange={e => setFormData({...formData, tenThanh: e.target.value})}/>
+                          </div>
+                          <div>
+                             <label className={labelClasses}>Họ và Tên</label>
+                             <input type="text" required value={formData.hoTen || ''} className={inputClasses} onChange={e => setFormData({...formData, hoTen: e.target.value})}/>
+                          </div>
+                          <div>
+                             <label className={labelClasses}>Ngày sinh</label>
+                             <input type="date" value={formData.ngaySinh || ''} className={inputClasses} onChange={e => setFormData({...formData, ngaySinh: e.target.value})}/>
+                          </div>
+                          <div>
+                             <label className={labelClasses}>Giới tính</label>
+                             <div className="flex bg-white dark:bg-slate-950 p-1 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                                {Object.values(Gender).map(g => (
+                                  <button key={g} type="button" onClick={() => setFormData({...formData, gioiTinh: g})} className={`flex-1 py-2.5 rounded-[0.6rem] text-[10px] font-black uppercase tracking-widest transition-all ${formData.gioiTinh === g ? 'bg-slate-100 dark:bg-slate-800 shadow-inner text-[#BC8F44]' : 'text-slate-400'}`}>{g}</button>
+                                ))}
+                             </div>
                           </div>
                        </div>
                     </div>
                  </div>
 
-                 {/* Card 2: Thông tin liên hệ */}
-                 <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-6">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-blue-500 shadow-sm">
-                          <Phone size={20} />
-                       </div>
-                       <h4 className="text-sm font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">Thông tin liên hệ</h4>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Số điện thoại</label>
-                          <input type="tel" value={formData.soDienThoai || ''} className={inputClasses} onChange={e => setFormData({...formData, soDienThoai: e.target.value})}/>
-                       </div>
-                       <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Quê quán / Địa chỉ</label>
-                          <input type="text" value={formData.queQuan || ''} className={inputClasses} onChange={e => setFormData({...formData, queQuan: e.target.value})}/>
-                       </div>
-                    </div>
-                 </div>
-
-                 {/* Card 3: Vai trò & Tổ chức */}
-                 <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-6">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-emerald-500 shadow-sm">
-                          <ShieldCheck size={20} />
-                       </div>
-                       <h4 className="text-sm font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">Vai trò và Tổ chức</h4>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                       <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Vai trò</label>
-                          <select className={`${inputClasses} cursor-pointer`} value={formData.vaiTro} onChange={e => setFormData({...formData, vaiTro: e.target.value as MemberRole})}>
-                             {Object.values(MemberRole).map(r => <option key={r} value={r}>{r}</option>)}
-                          </select>
-                       </div>
-                       <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Ngày gia nhập</label>
-                          <input type="date" value={formData.ngayGiaNhap || ''} className={inputClasses} onChange={e => setFormData({...formData, ngayGiaNhap: e.target.value})}/>
-                       </div>
-                       <div className="space-y-2">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Trạng thái</label>
-                          <select className={`${inputClasses} cursor-pointer`} value={formData.trangThai} onChange={e => setFormData({...formData, trangThai: e.target.value as Status})}>
-                             {Object.values(Status).map(s => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                       </div>
-                    </div>
+                 {/* 2 & 3. Bottom Columns */}
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     
-                    <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800/50">
-                        <div className="flex items-center gap-2 ml-4">
-                           <StickyNote size={12} className="text-slate-400"/>
-                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ghi chú bổ sung</label>
-                        </div>
-                        <textarea rows={3} value={formData.ghiChu || ''} className={`${inputClasses} resize-none`} placeholder="Thông tin đặc biệt, kỹ năng, năng khiếu..." onChange={e => setFormData({...formData, ghiChu: e.target.value})}></textarea>
+                    {/* Contact Info */}
+                    <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex flex-col">
+                       <div className="flex items-center gap-3 mb-6">
+                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-blue-500 shadow-sm">
+                             <Phone size={16} />
+                          </div>
+                          <h4 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">Thông tin liên hệ</h4>
+                       </div>
+                       <div className="space-y-5 flex-1">
+                          <div>
+                             <label className={labelClasses}>Số điện thoại</label>
+                             <input type="tel" value={formData.soDienThoai || ''} className={inputClasses} onChange={e => setFormData({...formData, soDienThoai: e.target.value})}/>
+                          </div>
+                          <div>
+                             <label className={labelClasses}>Quê quán / Địa chỉ</label>
+                             <textarea rows={3} value={formData.queQuan || ''} className={`${inputClasses} resize-none`} onChange={e => setFormData({...formData, queQuan: e.target.value})}></textarea>
+                          </div>
+                       </div>
+                    </div>
+
+                    {/* Role & Status */}
+                    <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+                       <div className="flex items-center gap-3 mb-6">
+                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-emerald-500 shadow-sm">
+                             <ShieldCheck size={16} />
+                          </div>
+                          <h4 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">Vai trò & Trạng thái</h4>
+                       </div>
+                       <div className="space-y-5">
+                          <div className="grid grid-cols-2 gap-4">
+                             <div>
+                                <label className={labelClasses}>Vai trò</label>
+                                <select className={`${inputClasses} cursor-pointer appearance-none`} value={formData.vaiTro} onChange={e => setFormData({...formData, vaiTro: e.target.value as MemberRole})}>
+                                   {Object.values(MemberRole).map(r => <option key={r} value={r}>{r}</option>)}
+                                </select>
+                             </div>
+                             <div>
+                                <label className={labelClasses}>Trạng thái</label>
+                                <select className={`${inputClasses} cursor-pointer appearance-none`} value={formData.trangThai} onChange={e => setFormData({...formData, trangThai: e.target.value as Status})}>
+                                   {Object.values(Status).map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                             </div>
+                          </div>
+                          <div>
+                             <label className={labelClasses}>Ngày gia nhập</label>
+                             <input type="date" value={formData.ngayGiaNhap || ''} className={inputClasses} onChange={e => setFormData({...formData, ngayGiaNhap: e.target.value})}/>
+                          </div>
+                          <div>
+                             <div className="flex items-center gap-2 mb-1.5">
+                                <StickyNote size={12} className="text-slate-400"/>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ghi chú</label>
+                             </div>
+                             <input type="text" value={formData.ghiChu || ''} className={inputClasses} placeholder="..." onChange={e => setFormData({...formData, ghiChu: e.target.value})} />
+                          </div>
+                       </div>
                     </div>
                  </div>
 
                  <div className="flex gap-4 pt-4">
-                    <button type="submit" style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#0F172A' }} className="flex-1 py-6 text-white rounded-full text-[13px] font-black tracking-[0.4em] uppercase shadow-2xl hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98]">HOÀN TẤT LƯU</button>
-                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-12 py-6 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-full text-[11px] font-black tracking-widest uppercase hover:bg-slate-200 transition-all">HỦY BỎ</button>
+                    <button type="submit" style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#0F172A' }} className="flex-1 py-5 text-white rounded-2xl text-[12px] font-black tracking-[0.3em] uppercase shadow-2xl hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98]">LƯU THÔNG TIN</button>
+                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 py-5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl text-[10px] font-black tracking-widest uppercase hover:bg-slate-200 transition-all">HỦY BỎ</button>
                  </div>
               </form>
            </div>
