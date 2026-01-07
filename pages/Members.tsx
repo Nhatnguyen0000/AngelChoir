@@ -10,7 +10,6 @@ import {
   Search,
   Phone,
   Filter,
-  Layers,
   ChevronDown,
   Info,
   Contact,
@@ -18,7 +17,12 @@ import {
   CheckCircle2,
   MapPin,
   Printer,
-  Upload
+  Upload,
+  User as UserIcon,
+  UserCircle,
+  FileText,
+  ShieldCheck,
+  CalendarDays
 } from 'lucide-react';
 import { getMembers, saveMembers, getSpringColor } from '../store';
 import { ThanhVien, MemberRole, Gender, Status } from '../types';
@@ -47,7 +51,7 @@ const Members: React.FC = () => {
     const female = members.filter(m => m.gioiTinh === Gender.Nu).length;
     const roleStats = Object.values(MemberRole).map(role => {
       const count = members.filter(m => m.vaiTro === role).length;
-      return { role, count, percent: ((count / total) * 100).toFixed(1) };
+      return { role, count };
     });
     return { total, male, female, roleStats };
   }, [members]);
@@ -85,197 +89,147 @@ const Members: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+    <div className="space-y-4 pb-16 max-w-[1500px] mx-auto animate-in fade-in duration-500">
       
-      {/* Redesigned Compact Action Bar */}
-      <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-4 shadow-2xl shadow-black/5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 border border-white dark:border-slate-800/50">
+      {/* Compact Minimalist Toolbar */}
+      <div className="bg-white dark:bg-slate-900 rounded-[1.5rem] p-3 shadow-lg flex items-center justify-between gap-4 border border-white dark:border-slate-800">
         
-        <div className="relative group flex-1 min-w-[250px] max-w-sm ml-4">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm ca viên..."
-            className="w-full pl-14 pr-6 py-3.5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none text-[10px] font-bold text-slate-400 shadow-inner focus:ring-4 focus:ring-[#BC8F44]/5 transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <div className="flex items-center flex-1 gap-3 ml-2">
+          <div className="relative group w-full max-w-xs">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={14} />
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border-none outline-none text-[11px] font-bold text-slate-500 shadow-inner"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-        <div className="flex items-center gap-2 px-6 py-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-full border border-black/5 min-w-[160px] justify-between group cursor-pointer">
-          <div className="flex items-center gap-2">
-             <Filter size={14} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-black/5 cursor-pointer">
+             <Filter size={12} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
              <select 
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="bg-transparent text-[9px] font-black text-slate-500 uppercase outline-none cursor-pointer tracking-widest appearance-none pr-4"
+                className="bg-transparent text-[9px] font-black text-slate-500 uppercase outline-none tracking-widest appearance-none pr-4"
              >
                 <option value="Tất cả">VAI TRÒ</option>
                 {Object.values(MemberRole).map(role => <option key={role} value={role}>{role}</option>)}
              </select>
           </div>
-          <ChevronDown size={10} className="text-slate-300" />
         </div>
 
-        <div className="flex items-center gap-2 pr-2">
-          {/* Compact Analysis Toggle */}
-          <button 
-            onClick={() => setShowAnalysis(!showAnalysis)}
-            style={showAnalysis ? (isSpring ? { backgroundColor: springColor } : { backgroundColor: '#354E4D' }) : {}}
-            className={`p-3.5 rounded-xl transition-all ${showAnalysis ? 'text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-slate-100'}`}
-            title="Phân tích"
-          >
-            <PieChartIcon size={18} />
+        <div className="flex items-center gap-1.5 pr-1">
+          <button onClick={() => setShowAnalysis(!showAnalysis)} className={`p-2.5 rounded-lg transition-all ${showAnalysis ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            <PieChartIcon size={16} />
           </button>
-
-          <div className="w-px h-6 bg-slate-100 dark:bg-slate-800 mx-1"></div>
-
-          {/* Compact Functional Icon Buttons */}
-          <button 
-            className="p-3.5 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-[#BC8F44] rounded-xl border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all active:scale-95"
-            title="Nhập dữ liệu"
-          >
-            <Upload size={18} />
-          </button>
+          <div className="w-px h-5 bg-slate-100 dark:bg-slate-800 mx-1"></div>
           
-          <button 
-            className="p-3.5 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-emerald-600 rounded-xl border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all active:scale-95"
-            title="Xuất Excel"
-          >
-            <Download size={18} />
-          </button>
-
-          <button 
-            className="p-3.5 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-blue-500 rounded-xl border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all active:scale-95"
-            title="In danh sách"
-          >
-            <Printer size={18} />
-          </button>
-
+          <button className="p-2.5 text-slate-400 hover:text-[#BC8F44] transition-all" title="Nhập"><Upload size={16} /></button>
+          <button className="p-2.5 text-slate-400 hover:text-emerald-500 transition-all" title="Xuất"><Download size={16} /></button>
+          <button className="p-2.5 text-slate-400 hover:text-blue-500 transition-all" title="In"><Printer size={16} /></button>
+          
           <button 
             onClick={() => {
               setEditingMember(null);
-              setFormData({ 
-                tenThanh: '', hoTen: '', vaiTro: MemberRole.CaVien, 
-                trangThai: Status.Active, gioiTinh: Gender.Nam, 
-                queQuan: '', soDienThoai: '', ngaySinh: '1995-01-01',
-                ghiChu: ''
-              });
+              setFormData({ tenThanh: '', hoTen: '', vaiTro: MemberRole.CaVien, trangThai: Status.Active, gioiTinh: Gender.Nam, queQuan: '', soDienThoai: '', ngaySinh: '1995-01-01', ghiChu: '' });
               setIsModalOpen(true);
             }} 
             style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#BC8F44' }}
-            className="p-3.5 text-white rounded-xl shadow-lg hover:scale-105 transition-all"
-            title="Thêm ca viên"
+            className="ml-2 p-2.5 text-white rounded-lg shadow-md hover:scale-105 transition-all"
           >
-            <Plus size={20} strokeWidth={3} />
+            <Plus size={18} strokeWidth={3} />
           </button>
         </div>
       </div>
 
-      {/* Analysis Section */}
+      {/* Mini Analysis Bar */}
       {showAnalysis && analysis && (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-500">
-          <div style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#354E4D' }} className="rounded-[2.5rem] p-6 text-white shadow-xl flex flex-col justify-between">
-            <Layers size={20} className="opacity-20 mb-2" />
-            <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.4em] opacity-50 mb-1">Tổng nhân sự</p>
-              <h3 className="text-3xl font-black tracking-tighter leading-none">{analysis.total}</h3>
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in slide-in-from-top-2 duration-300">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-white dark:border-slate-800 shadow-sm">
+            <p className="text-[7px] font-black text-slate-300 uppercase tracking-widest mb-1">Tổng nhân sự</p>
+            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{analysis.total}</p>
           </div>
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-white dark:border-slate-800 shadow-xl flex flex-col justify-between">
-            <p className="text-[8px] font-black text-slate-300 uppercase tracking-[0.4em] mb-4">Giới tính</p>
-            <div className="flex gap-6">
-              <div>
-                <p className="text-xl font-black text-blue-600 leading-none">{analysis.male}</p>
-                <p className="text-[7px] font-black text-slate-300 uppercase mt-1">Nam</p>
-              </div>
-              <div className="w-px h-6 bg-slate-50 dark:bg-slate-800"></div>
-              <div>
-                <p className="text-xl font-black text-pink-600 leading-none">{analysis.female}</p>
-                <p className="text-[7px] font-black text-slate-300 uppercase mt-1">Nữ</p>
-              </div>
-            </div>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-white dark:border-slate-800 shadow-sm flex items-center gap-4">
+             <div>
+               <p className="text-[7px] font-black text-blue-400 uppercase tracking-widest mb-1">Nam</p>
+               <p className="text-lg font-black text-blue-600 leading-none">{analysis.male}</p>
+             </div>
+             <div className="w-px h-6 bg-slate-50 dark:bg-slate-800"></div>
+             <div>
+               <p className="text-[7px] font-black text-pink-400 uppercase tracking-widest mb-1">Nữ</p>
+               <p className="text-lg font-black text-pink-600 leading-none">{analysis.female}</p>
+             </div>
           </div>
-          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-white dark:border-slate-800 shadow-xl flex items-center gap-6 overflow-x-auto no-scrollbar">
-            {analysis.roleStats.map((rs, i) => (
-              <div key={i} className="shrink-0 flex flex-col items-center gap-1">
-                 <div style={isSpring ? { color: springColor } : { color: '#BC8F44' }} className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-xs font-black border border-black/5">
-                    {rs.count}
-                 </div>
-                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest text-center leading-tight">{rs.role}</p>
-              </div>
-            ))}
+          <div className="col-span-2 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-white dark:border-slate-800 shadow-sm flex items-center gap-4 overflow-x-auto no-scrollbar">
+             {analysis.roleStats.filter(rs => rs.count > 0).map((rs, i) => (
+               <div key={i} className="flex flex-col items-center">
+                  <span style={isSpring ? { color: springColor } : { color: '#BC8F44' }} className="text-xs font-black">{rs.count}</span>
+                  <span className="text-[6px] font-black text-slate-300 uppercase tracking-tight">{rs.role}</span>
+               </div>
+             ))}
           </div>
         </div>
       )}
 
-      {/* List Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl shadow-black/5 overflow-hidden border border-white dark:border-slate-800/50">
+      {/* The List View (Table) */}
+      <div className="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-xl overflow-hidden border border-white dark:border-slate-800">
         <div className="overflow-x-auto no-scrollbar">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <th className="py-6 pl-12 pr-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-20">STT</th>
-                <th className="py-6 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Ca Viên</th>
-                <th className="py-6 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Vai Trò</th>
-                <th className="py-6 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest hidden md:table-cell">Liên Hệ</th>
-                <th className="py-6 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Trạng Thái</th>
-                <th className="py-6 pr-12 pl-4 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest w-40">Tác Vụ</th>
+                <th className="py-4 pl-8 pr-2 text-[8px] font-black text-slate-400 uppercase tracking-widest w-12 text-center">STT</th>
+                <th className="py-4 px-4 text-[8px] font-black text-slate-400 uppercase tracking-widest">Họ & Tên</th>
+                <th className="py-4 px-4 text-[8px] font-black text-slate-400 uppercase tracking-widest">Vai Trò</th>
+                <th className="py-4 px-4 text-[8px] font-black text-slate-400 uppercase tracking-widest hidden md:table-cell">Số điện thoại</th>
+                <th className="py-4 px-4 text-[8px] font-black text-slate-400 uppercase tracking-widest">Trạng Thái</th>
+                <th className="py-4 pr-8 pl-4 text-right text-[8px] font-black text-slate-400 uppercase tracking-widest w-24">Tác Vụ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
               {filteredMembers.map((m, idx) => (
-                <tr key={m.id} className="group hover:bg-[#BC8F44]/5 transition-all duration-300">
-                  <td className="py-5 pl-12 pr-4 text-center">
-                    <span className="text-[11px] font-black text-slate-200 group-hover:text-[#BC8F44] transition-colors">{(idx + 1).toString().padStart(2, '0')}</span>
+                <tr key={m.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <td className="py-3 pl-8 pr-2 text-center">
+                    <span className="text-[10px] font-black text-slate-200 group-hover:text-slate-400">{(idx + 1).toString().padStart(2, '0')}</span>
                   </td>
-                  <td className="py-5 px-4">
-                    <div className="flex items-center gap-4">
-                      <div style={isSpring ? { color: springColor } : { color: '#BC8F44' }} className="w-9 h-9 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center font-black text-[10px] border border-black/5 shadow-inner group-hover:bg-[#BC8F44] group-hover:text-white transition-all">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        style={isSpring ? { backgroundColor: springColor + '10', color: springColor, borderColor: springColor + '20' } : { backgroundColor: '#BC8F4410', color: '#BC8F44', borderColor: '#BC8F4420' }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-[9px] border shadow-sm group-hover:scale-105 transition-transform"
+                      >
                         {getInitials(m.hoTen)}
                       </div>
                       <div>
-                        <h4 className="text-[13px] font-black text-[#0F172A] dark:text-white uppercase tracking-tight leading-none mb-1">{m.tenThanh} {m.hoTen}</h4>
-                        <div className="flex items-center gap-2">
-                           <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest ${m.gioiTinh === Gender.Nam ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>{m.gioiTinh}</span>
-                           <span className="text-[8px] text-slate-300 font-bold uppercase tracking-widest">{m.ngaySinh}</span>
-                        </div>
+                        <h4 className="text-[12px] font-black text-[#0F172A] dark:text-white uppercase tracking-tight leading-none mb-1">{m.tenThanh} {m.hoTen}</h4>
+                        <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest ${m.gioiTinh === Gender.Nam ? 'bg-blue-50 text-blue-500' : 'bg-pink-50 text-pink-500'}`}>{m.gioiTinh}</span>
                       </div>
                     </div>
                   </td>
-                  <td className="py-5 px-4">
+                  <td className="py-3 px-4">
                     <span 
                       style={m.vaiTro === MemberRole.TruongCaDoan || m.vaiTro === MemberRole.CaTruong ? (isSpring ? { color: springColor, borderColor: springColor + '40', backgroundColor: springColor + '08' } : { color: '#BC8F44', borderColor: '#BC8F4440', backgroundColor: '#BC8F4408' }) : {}}
-                      className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border ${m.vaiTro === MemberRole.TruongCaDoan || m.vaiTro === MemberRole.CaTruong ? '' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700'}`}
+                      className={`text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${m.vaiTro === MemberRole.TruongCaDoan || m.vaiTro === MemberRole.CaTruong ? '' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700'}`}
                     >
                       {m.vaiTro}
                     </span>
                   </td>
-                  <td className="py-5 px-4 hidden md:table-cell">
+                  <td className="py-3 px-4 hidden md:table-cell">
                     <div className="flex items-center gap-2 text-slate-500">
-                      <Phone size={11} className="text-[#BC8F44]/60" />
-                      <span className="text-[10px] font-black tracking-tighter">{m.soDienThoai || '---'}</span>
+                      <Phone size={10} className="opacity-40" />
+                      <span className="text-[10px] font-bold tracking-tighter">{m.soDienThoai || '---'}</span>
                     </div>
                   </td>
-                  <td className="py-5 px-4">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full ${m.trangThai === Status.Active ? 'bg-emerald-500 shadow-lg' : 'bg-slate-200'}`}></div>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-1.5 h-1.5 rounded-full ${m.trangThai === Status.Active ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
                       <span className={`text-[9px] font-black uppercase tracking-widest ${m.trangThai === Status.Active ? 'text-emerald-500' : 'text-slate-400'}`}>{m.trangThai}</span>
                     </div>
                   </td>
-                  <td className="py-5 pr-12 pl-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setEditingMember(m); setFormData(m); setIsModalOpen(true); }}
-                        className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-[#BC8F44] rounded-lg shadow border border-slate-50 dark:border-slate-700 transition-all"
-                      >
-                        <Edit3 size={14} />
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); if(window.confirm('Xóa vĩnh viễn hồ sơ này?')) { const u = members.filter(x => x.id !== m.id); setMembers(u); saveMembers(u); } }}
-                        className="p-2 bg-red-50 text-red-400 hover:bg-red-500 hover:text-white rounded-lg shadow transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                  <td className="py-3 pr-8 pl-4 text-right">
+                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => { setEditingMember(m); setFormData(m); setIsModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-[#BC8F44] hover:bg-white rounded-md shadow-sm transition-all"><Edit3 size={13} /></button>
+                      <button onClick={() => { if(window.confirm('Xóa?')) { const u = members.filter(x => x.id !== m.id); setMembers(u); saveMembers(u); } }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"><Trash2 size={13} /></button>
                     </div>
                   </td>
                 </tr>
@@ -285,115 +239,165 @@ const Members: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Profile */}
+      {/* Advanced Profile Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-2xl z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300 overflow-y-auto no-scrollbar">
-          <div className={`bg-white dark:bg-slate-950 w-full max-w-5xl rounded-[3.5rem] shadow-2xl relative border ${isSpring ? 'border-amber-200/20' : 'border-white/10'} animate-in zoom-in-95 duration-500 my-auto`}>
-            
-            <div className={`p-10 md:p-12 border-b ${isSpring ? 'bg-amber-50/30 border-amber-100' : 'bg-slate-50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800'} rounded-t-[3.5rem] flex justify-between items-center`}>
-              <div>
-                <h3 style={isSpring ? { color: springColor } : {}} className={`text-3xl font-black uppercase tracking-tighter leading-none ${!isSpring ? 'text-[#0F172A] dark:text-white' : ''}`}>
-                  {editingMember ? 'Cập Nhật Hồ Sơ' : 'Ghi Danh Mới'}
-                </h3>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.5em] mt-3 opacity-60">Hệ thống nhân sự AngelChoir</p>
+        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300 overflow-y-auto no-scrollbar">
+          <div className="bg-white dark:bg-slate-950 w-full max-w-5xl rounded-[3rem] shadow-2xl relative border border-white/10 animate-in zoom-in-95 duration-500 my-auto">
+            {/* Modal Header */}
+            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/30 dark:bg-slate-900/20">
+              <div className="flex items-center gap-6">
+                <div 
+                  style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#BC8F44' }}
+                  className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-black/10"
+                >
+                  <UserCircle size={32} />
+                </div>
+                <div>
+                  <h3 className="text-3xl font-black uppercase tracking-tighter leading-none dark:text-white">
+                    {editingMember ? 'Cập Nhật Hồ Sơ' : 'Ghi Danh Mới'}
+                  </h3>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#BC8F44' }} className="w-1.5 h-1.5 rounded-full"></div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em]">QUẢN LÝ NHÂN SỰ ANGELCHOIR</p>
+                  </div>
+                </div>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-4 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all">
+              <button onClick={() => setIsModalOpen(false)} className="p-4 bg-white dark:bg-slate-800 text-slate-300 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm border border-slate-100 dark:border-slate-700">
                 <X size={24} />
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="p-10 md:p-12 space-y-12">
-              <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
-                <div className="xl:col-span-7 space-y-10">
-                  <div className="space-y-6">
-                    <h4 style={isSpring ? { color: springColor } : { color: '#BC8F44' }} className="text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-3">
-                      <Info size={14} /> THÔNG TIN CÁ NHÂN
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-2">
+            <form onSubmit={handleSave} className="p-10">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                  
+                  {/* Section 1: Personal Info */}
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-3 border-b border-slate-50 dark:border-slate-800 pb-4">
+                      <UserIcon size={16} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
+                      <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]">THÔNG TIN CÁ NHÂN</h4>
+                    </div>
+                    
+                    <div className="space-y-5">
+                      <div className="space-y-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Tên Thánh</label>
-                        <input type="text" required value={formData.tenThanh} placeholder="Giuse / Maria..." className="w-full px-8 py-4 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border-none outline-none text-xs font-bold shadow-inner focus:ring-4 focus:ring-[#BC8F44]/5 transition-all" onChange={e => setFormData({...formData, tenThanh: e.target.value})}/>
+                        <input type="text" required placeholder="Giuse, Maria, Teresa..." value={formData.tenThanh} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-[13px] font-bold shadow-inner focus:ring-2 focus:ring-opacity-50" style={{'--tw-ring-color': isSpring ? springColor : '#BC8F44'} as any} onChange={e => setFormData({...formData, tenThanh: e.target.value})}/>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Họ và Tên</label>
-                        <input type="text" required value={formData.hoTen} placeholder="Tên đầy đủ..." className="w-full px-8 py-4 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border-none outline-none text-xs font-bold shadow-inner focus:ring-4 focus:ring-[#BC8F44]/5 transition-all" onChange={e => setFormData({...formData, hoTen: e.target.value})}/>
+                        <input type="text" required placeholder="Nguyễn Văn A" value={formData.hoTen} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-[13px] font-bold shadow-inner focus:ring-2 focus:ring-opacity-50" style={{'--tw-ring-color': isSpring ? springColor : '#BC8F44'} as any} onChange={e => setFormData({...formData, hoTen: e.target.value})}/>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Giới Tính</label>
-                        <div className="flex gap-2 p-1 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem]">
-                          {Object.values(Gender).map(g => (
-                            <button key={g} type="button" onClick={() => setFormData({...formData, gioiTinh: g})} className={`flex-1 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${formData.gioiTinh === g ? 'bg-white shadow-md text-[#BC8F44]' : 'text-slate-400 hover:text-slate-600'}`}>{g}</button>
-                          ))}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Giới Tính</label>
+                          <select className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl outline-none text-[13px] font-bold appearance-none" value={formData.gioiTinh} onChange={e => setFormData({...formData, gioiTinh: e.target.value as Gender})}>
+                            {Object.values(Gender).map(g => <option key={g} value={g}>{g}</option>)}
+                          </select>
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Ngày Sinh</label>
-                        <input type="date" required value={formData.ngaySinh} className="w-full px-8 py-4 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border-none outline-none text-xs font-bold shadow-inner" onChange={e => setFormData({...formData, ngaySinh: e.target.value})}/>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Ngày Sinh</label>
+                          <div className="relative">
+                            <CalendarDays size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
+                            <input type="date" required value={formData.ngaySinh} className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl outline-none text-[13px] font-bold" onChange={e => setFormData({...formData, ngaySinh: e.target.value})}/>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-6">
-                    <h4 style={isSpring ? { color: springColor } : { color: '#BC8F44' }} className="text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-3">
-                      <Contact size={14} /> LIÊN HỆ & ĐỊA CHỈ
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Số điện thoại</label>
+                  {/* Section 2: Contact Info */}
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-3 border-b border-slate-50 dark:border-slate-800 pb-4">
+                      <Contact size={16} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
+                      <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]">THÔNG TIN LIÊN HỆ</h4>
+                    </div>
+
+                    <div className="space-y-5">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Số Điện Thoại</label>
                         <div className="relative">
                           <Phone size={14} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
-                          <input type="tel" value={formData.soDienThoai} placeholder="09xx..." className="w-full pl-14 pr-8 py-4 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border-none outline-none text-xs font-bold shadow-inner" onChange={e => setFormData({...formData, soDienThoai: e.target.value})}/>
+                          <input type="tel" placeholder="09xx xxx xxx" value={formData.soDienThoai} className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-[13px] font-bold shadow-inner" onChange={e => setFormData({...formData, soDienThoai: e.target.value})}/>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Quê quán</label>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Quê Quán / Địa Chỉ</label>
                         <div className="relative">
                           <MapPin size={14} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
-                          <input type="text" value={formData.queQuan} placeholder="Nơi ở hiện tại..." className="w-full pl-14 pr-8 py-4 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border-none outline-none text-xs font-bold shadow-inner" onChange={e => setFormData({...formData, queQuan: e.target.value})}/>
+                          <input type="text" placeholder="Thành phố, Tỉnh..." value={formData.queQuan} className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-[13px] font-bold shadow-inner" onChange={e => setFormData({...formData, queQuan: e.target.value})}/>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-4">Ghi Chú Đặc Biệt</label>
+                        <div className="relative">
+                          <FileText size={14} className="absolute left-6 top-5 text-slate-300" />
+                          <textarea rows={3} placeholder="Sở trường, nhạc cụ, bệnh lý..." value={formData.ghiChu} className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-[13px] font-bold shadow-inner resize-none" onChange={e => setFormData({...formData, ghiChu: e.target.value})}></textarea>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="xl:col-span-5 space-y-10">
-                  <div className="space-y-6">
-                    <h4 style={isSpring ? { color: springColor } : { color: '#BC8F44' }} className="text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-3">
-                      <Briefcase size={14} /> VAI TRÒ & TRẠNG THÁI
-                    </h4>
-                    <div className="p-8 bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] space-y-6 shadow-inner">
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Chức vụ phụ trách</label>
-                        <select className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-slate-800 border-none outline-none text-xs font-bold shadow-sm cursor-pointer" value={formData.vaiTro} onChange={e => setFormData({...formData, vaiTro: e.target.value as MemberRole})}>
-                          {Object.values(MemberRole).map(role => <option key={role} value={role}>{role}</option>)}
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Trạng thái công tác</label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {Object.values(Status).map(s => (
-                            <button key={s} type="button" onClick={() => setFormData({...formData, trangThai: s})} className={`py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border ${formData.trangThai === s ? 'bg-white border-[#BC8F44] text-[#BC8F44] shadow-md' : 'bg-transparent border-slate-100 dark:border-slate-800 text-slate-400'}`}>{s}</button>
-                          ))}
+                  {/* Section 3: System Role & Status */}
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-3 border-b border-slate-50 dark:border-slate-800 pb-4">
+                      <ShieldCheck size={16} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
+                      <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]">VAI TRÒ & TRẠNG THÁI</h4>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-[2rem] space-y-5 shadow-inner border border-white/5">
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">Chức vụ trong Ca đoàn</label>
+                          <div className="relative">
+                            <Briefcase size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                            <select className="w-full pl-11 pr-6 py-4 rounded-xl bg-white dark:bg-slate-800 outline-none text-[13px] font-bold shadow-sm" value={formData.vaiTro} onChange={e => setFormData({...formData, vaiTro: e.target.value as MemberRole})}>
+                              {Object.values(MemberRole).map(role => <option key={role} value={role}>{role}</option>)}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">Trạng thái hoạt động</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {Object.values(Status).map(s => (
+                              <button 
+                                key={s} 
+                                type="button" 
+                                onClick={() => setFormData({...formData, trangThai: s})} 
+                                className={`py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border-2 ${formData.trangThai === s ? (isSpring ? 'bg-white border-red-500 text-red-600 shadow-md' : 'bg-white border-[#BC8F44] text-[#BC8F44] shadow-md') : 'bg-transparent border-slate-100 dark:border-slate-800 text-slate-300'}`}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ghi chú năng khiếu</label>
-                        <textarea rows={3} value={formData.ghiChu} placeholder="Bè, nhạc cụ, khả năng khác..." className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-slate-800 border-none outline-none text-[11px] font-bold shadow-sm resize-none" onChange={e => setFormData({...formData, ghiChu: e.target.value})}></textarea>
+
+                      <div className="p-5 bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20 flex gap-4">
+                         <Info size={20} className="text-amber-500 shrink-0" />
+                         <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold leading-relaxed">
+                           Mọi thay đổi sẽ được lưu trữ vào hệ thống quản lý tập trung và tự động cập nhật báo cáo tháng.
+                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
               </div>
 
-              <div className="pt-10 border-t border-slate-100 dark:border-slate-800 flex gap-6">
+              {/* Form Actions */}
+              <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 flex gap-6">
                 <button 
                   type="submit" 
-                  style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#BC8F44' }}
-                  className="flex-1 py-6 text-white rounded-full text-[11px] font-black tracking-[0.4em] uppercase shadow-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-4"
+                  style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#0F172A' }}
+                  className="flex-1 py-5 text-white rounded-full text-[11px] font-black tracking-[0.4em] uppercase shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4"
                 >
-                  LƯU HỒ SƠ <CheckCircle2 size={20} />
+                  XÁC NHẬN LƯU HỒ SƠ <CheckCircle2 size={18} />
                 </button>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-12 py-6 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-full text-[11px] font-black tracking-widest uppercase hover:bg-red-50 hover:text-red-500 transition-all">HỦY BỎ</button>
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="px-14 py-5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[11px] font-black tracking-widest uppercase hover:bg-red-500 hover:text-white transition-all border border-slate-200 dark:border-slate-700"
+                >
+                  HỦY BỎ
+                </button>
               </div>
             </form>
           </div>

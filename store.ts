@@ -1,5 +1,5 @@
 
-import { ThanhVien, LichTap, User, Role, Status, Gender, MemberRole, Song } from './types';
+import { ThanhVien, LichTap, User, Role, Status, Gender, MemberRole, Song, SystemNotice } from './types';
 
 const INITIAL_MEMBERS: ThanhVien[] = [];
 const INITIAL_SCHEDULES: LichTap[] = [];
@@ -41,6 +41,20 @@ export const saveSpringColor = (color: string) => {
   window.dispatchEvent(new CustomEvent('springColorChange', { detail: color }));
 };
 
+export const getNotice = (): SystemNotice => {
+  const data = localStorage.getItem('system_notice');
+  return data ? JSON.parse(data) : {
+    title: 'Mừng Lễ Phục Sinh 2024',
+    content: 'Lịch tập hát bổ sung đã sẵn sàng. Ca viên vui lòng xem tại thư viện để tải bản nhạc mới.',
+    buttonText: 'XEM LỊCH',
+    isVisible: true
+  };
+};
+
+export const saveNotice = (notice: SystemNotice) => {
+  localStorage.setItem('system_notice', JSON.stringify(notice));
+};
+
 export const loginUser = (user: User) => {
   localStorage.setItem('user', JSON.stringify(user));
 };
@@ -67,4 +81,41 @@ export const getCurrentUser = (): User => {
     role: Role.Admin,
     fullName: 'Ban Điều Hành'
   };
+};
+
+// Advanced: Export/Import Logic
+export const exportSystemData = () => {
+  const data = {
+    members: getMembers(),
+    schedules: getSchedules(),
+    songs: getSongs(),
+    config: {
+      springColor: getSpringColor(),
+      theme: localStorage.getItem('theme') || 'light',
+      notice: getNotice()
+    },
+    version: '2.0.0',
+    exportDate: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `angelchoir_backup_${new Date().getTime()}.json`;
+  a.click();
+};
+
+export const importSystemData = (jsonData: string): boolean => {
+  try {
+    const data = JSON.parse(jsonData);
+    if (data.members) saveMembers(data.members);
+    if (data.schedules) saveSchedules(data.schedules);
+    if (data.songs) saveSongs(data.songs);
+    if (data.config?.springColor) saveSpringColor(data.config.springColor);
+    if (data.config?.notice) saveNotice(data.config.notice);
+    return true;
+  } catch (e) {
+    console.error('Import failed', e);
+    return false;
+  }
 };

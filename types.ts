@@ -48,3 +48,10 @@ export interface User {
   fullName: string;
   avatar?: string;
 }
+
+export interface SystemNotice {
+  title: string;
+  content: string;
+  buttonText: string;
+  isVisible: boolean;
+}
