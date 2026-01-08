@@ -1,6 +1,10 @@
 
 import React, { useMemo } from 'react';
-import { Users, Calendar, Music, TrendingUp, BellRing, ArrowRight } from 'lucide-react';
+import { 
+  Users, Calendar, Music, TrendingUp, BellRing, 
+  ArrowRight, Cake, Clock, MapPin, Sparkles,
+  ChevronRight, Award, Zap
+} from 'lucide-react';
 import { getMembers, getSchedules, getSongs, getNotice, getSpringColor } from '../store';
 
 const Dashboard: React.FC = () => {
@@ -13,101 +17,59 @@ const Dashboard: React.FC = () => {
   const isSpring = currentTheme === 'spring';
   const springColor = getSpringColor();
 
-  const stats = [
-    { label: 'THÀNH VIÊN', value: members.length, icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { label: 'LỊCH PHỤNG VỤ', value: schedules.length, icon: Calendar, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    { label: 'THƯ VIỆN NHẠC', value: songs.length, icon: Music, color: 'text-[#BC8F44]', bg: 'bg-[#BC8F44]/10' },
-    { label: 'ĐIỂM CỐNG HIẾN', value: members.reduce((acc, m) => acc + m.points, 0), icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50' },
-  ];
-
-  const topContributors = useMemo(() => {
-    return [...members].sort((a, b) => b.points - a.points).slice(0, 3);
+  const todaysBirthdays = useMemo(() => {
+    const today = new Date();
+    const mmdd = `${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+    return members.filter(m => m.ngaySinh && m.ngaySinh.endsWith(mmdd));
   }, [members]);
 
-  return (
-    <div className="max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-700">
-      <div className="flex flex-col gap-1 ml-4">
-         <h2 className={`text-3xl font-black uppercase tracking-tighter ${isSpring ? 'text-slate-800' : 'text-[#0F172A] dark:text-white'}`}>Bảng điều khiển</h2>
-         <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.4em]">Tổng quan dữ liệu thời gian thực</p>
-      </div>
+  const stats = [
+    { label: 'CA VIÊN', value: members.length, icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { label: 'LỊCH PHỤNG VỤ', value: schedules.length, icon: Calendar, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+    { label: 'THƯ VIỆN NHẠC', value: songs.length, icon: Music, color: 'text-[#BC8F44]', bg: 'bg-[#BC8F44]/10' },
+    { label: 'CỐNG HIẾN', value: members.reduce((acc, m) => acc + (m.points || 0), 0), icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50' },
+  ];
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  return (
+    <div className="max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-700 pb-10 px-2">
+      {/* Slim Notice Banner */}
+      {notice.isVisible && (
+        <div 
+          style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#0F172A' }}
+          className="mx-2 px-6 py-4 text-white rounded-[1.5rem] flex items-center justify-between shadow-lg border border-white/10 group transition-all"
+        >
+            <div className="flex items-center gap-4 flex-1">
+                <BellRing size={18} className="animate-pulse text-amber-300 shrink-0" /> 
+                <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
+                    <h3 className="text-sm font-black uppercase tracking-tight line-clamp-1">{notice.title}</h3>
+                    <p className="text-white/60 text-[11px] font-medium line-clamp-1 italic">{notice.content}</p>
+                </div>
+            </div>
+            <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black tracking-widest uppercase transition-all flex items-center gap-2 border border-white/10">
+              {notice.buttonText} <ChevronRight size={12} />
+            </button>
+        </div>
+      )}
+
+      {/* Compact Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-2">
         {stats.map((stat, i) => (
-          <div key={i} className="p-5 bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-lg border border-white/50 dark:border-slate-800 group hover:-translate-y-1 transition-all duration-300">
+          <div key={i} className="p-5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-[2rem] shadow-md border border-white dark:border-slate-800/50 group hover:-translate-y-1 transition-all">
             <div className="flex items-center gap-4">
-              <div className={`w-11 h-11 ${stat.bg} rounded-xl flex items-center justify-center ${stat.color} shadow-inner group-hover:scale-105 transition-transform`}>
-                 <stat.icon size={20} />
+              <div className={`w-10 h-10 ${stat.bg} dark:bg-slate-800 rounded-xl flex items-center justify-center ${stat.color}`}>
+                 <stat.icon size={18} />
               </div>
               <div>
-                <h4 className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-0.5">{String(stat.label)}</h4>
-                <p className={`text-2xl font-black tracking-tighter leading-none ${isSpring ? 'text-slate-800' : 'text-[#0F172A] dark:text-white'}`}>{String(stat.value)}</p>
+                <h4 className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">{stat.label}</h4>
+                <p className={`text-xl font-black tracking-tighter leading-none ${isSpring ? 'text-slate-800' : 'text-slate-900 dark:text-white'}`}>{stat.value}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-         {notice.isVisible && (
-           <div 
-             style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#1E293B' }}
-             className="lg:col-span-7 px-6 py-6 text-white rounded-[2rem] flex flex-row items-center justify-between relative overflow-hidden shadow-xl min-h-[160px]"
-           >
-              <div className="relative z-10 flex-1 pr-4">
-                 <div className="flex items-center gap-2 mb-2">
-                    <div className="inline-flex items-center justify-center w-6 h-6 bg-white/20 backdrop-blur-md rounded-full border border-white/10">
-                       <BellRing size={10} /> 
-                    </div>
-                    <span className="text-[9px] font-black tracking-[0.2em] uppercase opacity-70">Thông báo hệ thống</span>
-                 </div>
-                 
-                 <h3 className="text-xl font-black uppercase tracking-tight mb-2 leading-none">{String(notice.title)}</h3>
-                 <p className="text-white/80 text-[11px] font-medium leading-snug mb-4 max-w-md line-clamp-2">{String(notice.content)}</p>
-                 
-                 <button className="px-5 py-2 bg-white text-slate-900 rounded-xl text-[9px] font-black tracking-widest uppercase hover:scale-105 transition-all flex items-center gap-2">
-                   {String(notice.buttonText)} <ArrowRight size={10} />
-                 </button>
-              </div>
-              
-              <div className="relative z-10 hidden sm:flex flex-col items-center justify-center pl-6 border-l border-white/10">
-                 <Music size={40} className="opacity-80" />
-                 <span className="text-[8px] font-black uppercase tracking-widest mt-2 opacity-50">AngelChoir</span>
-              </div>
-
-              <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-              <Music size={120} className="absolute -right-6 -bottom-8 opacity-5 pointer-events-none rotate-12" />
-           </div>
-         )}
-
-         <div className={`${notice.isVisible ? 'lg:col-span-5' : 'lg:col-span-12'} p-6 bg-white dark:bg-slate-900 rounded-[2rem] shadow-lg border border-white dark:border-slate-800 flex flex-col justify-center min-h-[160px]`}>
-            <div className="flex items-center justify-between mb-4 border-b border-slate-50 dark:border-slate-800 pb-2">
-               <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">CA VIÊN GƯƠNG MẪU</h3>
-               <TrendingUp size={14} className="text-[#BC8F44] opacity-50" />
-            </div>
-            <div className="space-y-1">
-               {topContributors.length > 0 ? (
-                 topContributors.map((m, idx) => (
-                   <div key={m.id} className="flex items-center justify-between py-2.5 group cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 px-3 rounded-xl transition-all">
-                      <div className="flex items-center gap-3">
-                         <span className={`text-[10px] font-black ${idx < 3 ? 'text-[#BC8F44]' : 'text-slate-300'} w-4`}>{(idx + 1).toString().padStart(2, '0')}</span>
-                         <div style={isSpring ? { backgroundColor: springColor + '10', color: springColor } : { backgroundColor: '#BC8F4410', color: '#BC8F44' }} className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-[9px] uppercase shadow-inner">
-                            {String(m.hoTen?.[0] || '?')}
-                         </div>
-                         <div>
-                            <span className={`text-[11px] font-black uppercase tracking-tight ${isSpring ? 'text-slate-800' : 'text-[#0F172A] dark:text-white'} block`}>{String(m.hoTen)}</span>
-                            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{String(m.vaiTro)}</span>
-                         </div>
-                      </div>
-                      <span className="text-[9px] font-black text-[#BC8F44] bg-[#BC8F44]/5 px-2 py-0.5 rounded border border-[#BC8F44]/10">{String(m.points)} pts</span>
-                   </div>
-                 ))
-               ) : (
-                 <div className="text-center py-8 opacity-30">
-                   <p className="text-[9px] font-black uppercase tracking-widest">Chưa có dữ liệu</p>
-                 </div>
-               )}
-            </div>
-         </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start px-2">
+         {/* Main content can go here (Upcoming events, etc) */}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 
-import { ThanhVien, LichTap, User, Role, Status, Gender, MemberRole, Song, SystemNotice, Transaction } from './types';
+import { ThanhVien, LichTap, User, Role, Status, Gender, MemberRole, Song, SystemNotice, Transaction, Budget, RecurringTransaction } from './types';
 
 const INITIAL_MEMBERS: ThanhVien[] = [];
 const INITIAL_SCHEDULES: LichTap[] = [];
@@ -22,6 +22,28 @@ export const getTransactions = (): Transaction[] => {
 
 export const saveTransactions = (transactions: Transaction[]) => {
   localStorage.setItem('transactions', JSON.stringify(transactions));
+};
+
+export const getBudgets = (): Budget[] => {
+  const data = localStorage.getItem('budgets');
+  return data ? JSON.parse(data) : [
+    { category: 'Cơ sở vật chất', limit: 2000000, period: 'monthly' },
+    { category: 'Liên hoan', limit: 1000000, period: 'monthly' },
+    { category: 'Nhạc cụ', limit: 500000, period: 'monthly' }
+  ];
+};
+
+export const saveBudgets = (budgets: Budget[]) => {
+  localStorage.setItem('budgets', JSON.stringify(budgets));
+};
+
+export const getRecurringTransactions = (): RecurringTransaction[] => {
+  const data = localStorage.getItem('recurring_transactions');
+  return data ? JSON.parse(data) : [];
+};
+
+export const saveRecurringTransactions = (r: RecurringTransaction[]) => {
+  localStorage.setItem('recurring_transactions', JSON.stringify(r));
 };
 
 export const getSchedules = (): LichTap[] => {
@@ -82,29 +104,22 @@ export const getCurrentUser = (): User => {
   };
 };
 
-/**
- * Fix: Added missing loginUser function to persist user session.
- */
 export const loginUser = (user: User) => {
   localStorage.setItem('user', JSON.stringify(user));
 };
 
-/**
- * Fix: Added missing updateUserProfile function to update current user metadata.
- */
 export const updateUserProfile = (fullName: string, avatar?: string) => {
   const user = getCurrentUser();
   const updatedUser = { ...user, fullName, avatar };
   localStorage.setItem('user', JSON.stringify(updatedUser));
 };
 
-/**
- * Fix: Added missing exportSystemData function to generate a downloadable JSON backup.
- */
 export const exportSystemData = () => {
   const data = {
     members: getMembers(),
     transactions: getTransactions(),
+    budgets: getBudgets(),
+    recurring: getRecurringTransactions(),
     schedules: getSchedules(),
     songs: getSongs(),
     notice: getNotice(),
@@ -120,14 +135,13 @@ export const exportSystemData = () => {
   URL.revokeObjectURL(url);
 };
 
-/**
- * Fix: Added missing importSystemData function to restore system state from a JSON string.
- */
 export const importSystemData = (jsonString: string): boolean => {
   try {
     const data = JSON.parse(jsonString);
     if (data.members) saveMembers(data.members);
     if (data.transactions) saveTransactions(data.transactions);
+    if (data.budgets) saveBudgets(data.budgets);
+    if (data.recurring) saveRecurringTransactions(data.recurring);
     if (data.schedules) saveSchedules(data.schedules);
     if (data.songs) saveSongs(data.songs);
     if (data.notice) saveNotice(data.notice);

@@ -22,8 +22,8 @@ export interface ThanhVien {
   id: number;
   tenThanh: string;
   hoTen: string;
-  avatar?: string; // New field for profile picture
-  ngaySinh: string; // Định dạng YYYY-MM-DD
+  avatar?: string;
+  ngaySinh: string;
   gioiTinh: Gender;
   queQuan: string;
   soDienThoai: string;
@@ -52,6 +52,23 @@ export interface Transaction {
   category: string;
   description: string;
   memberId?: number;
+  isRecurring?: boolean;
+}
+
+export interface Budget {
+  category: string;
+  limit: number;
+  period: 'monthly' | 'yearly';
+}
+
+export interface RecurringTransaction {
+  id: number;
+  amount: number;
+  type: 'income' | 'expense';
+  category: string;
+  description: string;
+  frequency: 'monthly' | 'weekly';
+  dayOfMonth?: number;
 }
 
 export interface Message {
