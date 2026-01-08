@@ -2,11 +2,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Plus, Trash2, X, Edit3, Search, 
-  Users, Printer, Mail, UserCircle,
-  Camera, Check, Phone,
-  Fingerprint, Loader2, MapPin, Download,
-  Award, ChevronDown, FileSpreadsheet,
-  Settings2
+  Users, Printer, Phone,
+  Award, FileSpreadsheet, Download,
+  UserCircle, Camera, CheckCircle2,
+  Mail, Info, PhoneCall, MapPin, 
+  Clock, Check, UserPlus, Filter, 
+  MoreHorizontal, ChevronRight, UserCheck, Shield,
+  QrCode, UserMinus, HardDriveDownload
 } from 'lucide-react';
 import { getMembers, saveMembers, getSpringColor } from '../store';
 import { ThanhVien, MemberRole, Status, Gender } from '../types';
@@ -22,15 +24,13 @@ const Members: React.FC = () => {
   const [formData, setFormData] = useState<Partial<ThanhVien>>({});
   const [avatarPreview, setAvatarPreview] = useState<string>('');
   
-  // Filtering & Searching
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('All');
   const [filterStatus, setFilterStatus] = useState<string>('All');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'personal' | 'contact' | 'role'>('personal');
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const filterRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   
   const springColor = getSpringColor();
   const currentTheme = localStorage.getItem('theme') || 'light';
@@ -38,24 +38,14 @@ const Members: React.FC = () => {
 
   useEffect(() => {
     setMembers(getMembers());
-    
-    // Close filter dropdown on click outside
-    const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFilterOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const filteredMembers = useMemo(() => {
     return members.filter(m => {
-      const searchStr = (m.tenThanh + " " + m.hoTen).toLowerCase();
+      const searchStr = ((m.tenThanh || "") + " " + (m.hoTen || "") + " " + (m.soDienThoai || "")).toLowerCase();
       const matchesSearch = searchStr.includes(searchTerm.toLowerCase());
       const matchesRole = filterRole === 'All' || m.vaiTro === filterRole;
       const matchesStatus = filterStatus === 'All' || m.trangThai === filterStatus;
-      
       return matchesSearch && matchesRole && matchesStatus;
     }).sort((a, b) => a.hoTen.localeCompare(b.hoTen));
   }, [members, searchTerm, filterRole, filterStatus]);
@@ -74,8 +64,6 @@ const Members: React.FC = () => {
         ngayGiaNhap: new Date().toISOString().split('T')[0], 
         points: 0,
         ghiChu: '',
-        queQuan: 'Bắc Hòa',
-        soDienThoai: ''
       });
       setAvatarPreview('');
     }
@@ -86,7 +74,7 @@ const Members: React.FC = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.hoTen) {
-        alert("Vui lòng nhập Họ và Tên ca viên.");
+        alert("Vui lòng nhập Họ tên ca viên.");
         return;
     }
     const data: ThanhVien = { 
@@ -100,438 +88,372 @@ const Members: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const exportExcelPro = () => {
-    const dataToExport = filteredMembers.map((m, idx) => ({
-      'STT': idx + 1,
-      'Tên Thánh': m.tenThanh,
-      'Họ và Tên': m.hoTen,
-      'Ngày Sinh': m.ngaySinh || 'N/A',
-      'Giới tính': m.gioiTinh,
-      'Vai trò': m.vaiTro,
-      'Số điện thoại': m.soDienThoai || 'N/A',
-      'Ngày tham gia': m.ngayGiaNhap,
-      'Trạng thái': m.trangThai,
-      'Ghi chú': m.ghiChu || ''
-    }));
+  const handleExportExcelPro = () => {
+    const reportDate = new Date().toLocaleString('vi-VN');
+    const wsHeader = [
+      ["BAN ĐIỀU HÀNH CA ĐOÀN ANGELCHOIR"],
+      ["BÁO CÁO DANH SÁCH CHI TIẾT CA VIÊN"],
+      [`Thời gian kết xuất: ${reportDate}`],
+      [""],
+      ["STT", "Tên Thánh", "Họ và Tên", "Phái", "Vai trò / Bè", "Số điện thoại", "Ngày gia nhập", "Trạng thái"]
+    ];
 
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const wscols = [{wch: 6}, {wch: 22}, {wch: 35}, {wch: 18}, {wch: 12}, {wch: 25}, {wch: 20}, {wch: 20}, {wch: 22}, {wch: 45}];
-    worksheet['!cols'] = wscols;
+    const wsRows = filteredMembers.map((m, idx) => [
+      idx + 1,
+      m.tenThanh || "---",
+      m.hoTen,
+      m.gioiTinh,
+      m.vaiTro,
+      m.soDienThoai || "---",
+      m.ngayGiaNhap || "---",
+      m.trangThai
+    ]);
+
+    const worksheet = XLSX.utils.aoa_to_sheet([...wsHeader, ...wsRows]);
+    worksheet['!cols'] = [{ wch: 6 }, { wch: 18 }, { wch: 25 }, { wch: 8 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    worksheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }];
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'DANH SACH CA VIEN');
-    XLSX.writeFile(workbook, `AngelChoir_Export_Pro_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách Ca Viên");
+    XLSX.writeFile(workbook, `Bao_Cao_Ca_Vien_${Date.now()}.xlsx`);
   };
 
   const printMemberCard = async (m: ThanhVien) => {
-    const element = document.getElementById(`print-template-${m.id}`);
+    const element = document.getElementById(`card-template-${m.id}`);
     if (!element) return;
     setIsPrinting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const canvas = await html2canvas(element, { scale: 4, useCORS: true, backgroundColor: '#ffffff', logging: false });
+      await new Promise(r => setTimeout(r, 800)); // Đợi QR code load
+      const canvas = await html2canvas(element, { scale: 3, useCORS: true });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', [54, 86]); 
       pdf.addImage(imgData, 'PNG', 0, 0, 54, 86);
-      pdf.save(`THE_CA_VIEN_${m.hoTen.toUpperCase().replace(/\s/g, '_')}.pdf`);
-    } catch (err) { console.error(err); } finally { setIsPrinting(false); }
-  };
-
-  const handleBatchPrint = async () => {
-    if (filteredMembers.length === 0) return;
-    if (filteredMembers.length > 5) if (!window.confirm(`Hệ thống đang chuẩn bị in ${filteredMembers.length} thẻ...`)) return;
-    for (const m of filteredMembers) {
-      await printMemberCard(m);
-      await new Promise(r => setTimeout(r, 1000));
-    }
+      pdf.save(`The_Ca_Vien_${m.hoTen.replace(/\s+/g, '_')}.pdf`);
+    } catch (err) { alert("Lỗi khi kết xuất thẻ PDF."); } finally { setIsPrinting(false); }
   };
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto px-6 pb-40 animate-in fade-in duration-700 font-times">
-      
-      {/* Optimized Smart Toolbar */}
-      <div className="flex flex-col lg:flex-row items-center gap-4 mt-6">
+    <div className="space-y-4 pb-24 animate-slide-up px-2 lg:px-4">
+      {/* Page Header & Icon Toolbar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-3 border-b border-black/5">
+        <div className="flex items-center gap-3">
+           <div className="w-1.5 h-12 rounded-full shadow-lg" style={{ backgroundColor: isSpring ? springColor : '#0f172a' }}></div>
+           <div>
+              <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">Quản Lý Ca Viên</h1>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Hồ sơ lưu trữ điện tử AngelChoir</p>
+           </div>
+        </div>
         
-        {/* Search & Combined Filter */}
-        <div className="flex flex-1 items-center gap-3 w-full">
-           <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl p-1 flex items-center shadow-md border border-slate-100 dark:border-slate-800 focus-within:ring-2 focus-within:ring-red-900/10 transition-all">
-              <div className="flex-1 relative">
-                <input 
-                  type="text" 
-                  placeholder="Tìm kiếm ca viên..."
-                  className="w-full pl-6 pr-12 py-3.5 bg-transparent border-none outline-none text-base font-bold placeholder:text-slate-400 dark:text-white"
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-              </div>
+        <div className="flex items-center gap-2">
+           <div className="flex bg-white dark:bg-slate-900 rounded-2xl p-1 shadow-sm border border-black/5">
+             <button onClick={() => handleOpenModal()} className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all" title="Thêm ca viên mới"><UserPlus size={20} /></button>
+             <button onClick={handleExportExcelPro} className="p-3 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Xuất file Excel"><FileSpreadsheet size={20} /></button>
+             <button onClick={() => alert('Chức năng nhập liệu đang bảo trì')} className="p-3 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Nhập dữ liệu"><HardDriveDownload size={20} /></button>
            </div>
-
-           {/* Merged Filter Button */}
-           <div className="relative" ref={filterRef}>
-              <button 
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className={`flex items-center gap-3 px-6 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest transition-all shadow-sm border ${isFilterOpen ? 'bg-slate-900 text-white border-slate-900' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-100 dark:border-slate-700 hover:border-red-900/20'}`}
-              >
-                <Settings2 size={18} />
-                <span>Bộ lọc</span>
-                <ChevronDown size={14} className={`transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isFilterOpen && (
-                <div className="absolute top-full mt-3 right-0 w-72 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 z-[80] animate-in slide-in-from-top-2 duration-300">
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Vai trò</label>
-                      <select className="w-full px-5 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-none outline-none font-bold text-sm" value={filterRole} onChange={e => setFilterRole(e.target.value)}>
-                        <option value="All">Tất cả vai trò</option>
-                        {Object.values(MemberRole).map(r => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Trạng thái</label>
-                      <select className="w-full px-5 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-none outline-none font-bold text-sm" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-                        <option value="All">Tất cả trạng thái</option>
-                        {Object.values(Status).map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                    <button onClick={() => {setFilterRole('All'); setFilterStatus('All'); setIsFilterOpen(false);}} className="w-full py-3 text-[10px] font-black text-red-900 uppercase tracking-widest hover:bg-red-50 rounded-xl transition-all">Thiết lập lại</button>
-                  </div>
-                </div>
-              )}
-           </div>
-        </div>
-
-        {/* Action Group */}
-        <div className="flex items-center gap-3 shrink-0">
-           <div className="flex items-center bg-white/90 dark:bg-slate-900/90 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xl backdrop-blur-md">
-             <button 
-                onClick={exportExcelPro}
-                className="px-5 py-3.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-xl transition-all flex items-center gap-2.5 group border border-emerald-100"
-                title="Xuất Excel Chuyên Nghiệp"
-             >
-                <FileSpreadsheet size={18} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">Excel Pro</span>
-             </button>
-             <div className="w-px h-6 bg-slate-100 dark:bg-slate-700 mx-1"></div>
-             <button 
-                onClick={handleBatchPrint}
-                className="px-5 py-3.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl transition-all flex items-center gap-2.5 group border border-blue-100"
-                title="In Loạt Thẻ Thành Viên"
-             >
-                <Printer size={18} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">In Loạt Thẻ</span>
-             </button>
-           </div>
-
-           {/* High-End Add Button */}
-           <button 
-              onClick={() => handleOpenModal()}
-              className="w-16 h-16 burgundy-gradient text-white rounded-2xl flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all border border-white/20 relative group overflow-hidden"
-              title="Thêm ca viên mới"
-            >
-              <Plus size={36} strokeWidth={3} />
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            </button>
         </div>
       </div>
 
-      {/* List Headers */}
-      <div className="px-14 flex items-center text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 mt-8 opacity-60">
-        <div className="w-[30%]">Hồ sơ định danh</div>
-        <div className="w-[18%]">Vai trò</div>
-        <div className="w-[20%]">Thông tin liên lạc</div>
-        <div className="w-[12%] text-center">Trạng thái</div>
-        <div className="w-[14%]">Ngày tham gia</div>
-        <div className="w-[6%] text-right">Quản trị</div>
-      </div>
-
-      {/* Compact List Layout */}
-      <div className="space-y-2.5">
-        {filteredMembers.map(m => (
-          <div key={m.id} className="bg-white dark:bg-slate-900 rounded-2xl p-3 px-10 shadow-sm flex items-center group transition-all hover:shadow-xl border border-transparent hover:border-black/5 hover:-translate-y-0.5 relative overflow-hidden">
-            <div className="w-[30%] flex items-center gap-6">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 overflow-hidden flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-inner">
-                {m.avatar ? <img src={m.avatar} className="w-full h-full object-cover" /> : <Users size={20} className="text-slate-200" />}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-[#BC8F44] uppercase tracking-[0.1em] leading-tight mb-1">{m.tenThanh}</span>
-                <span className="text-[17px] font-bold text-slate-800 dark:text-white uppercase tracking-tighter leading-none">{m.hoTen}</span>
-              </div>
-            </div>
-
-            <div className="w-[18%] text-[13px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-slate-100"></div>
-              {m.vaiTro}
-            </div>
-
-            <div className="w-[20%] flex flex-col gap-0.5">
-               <div className="flex items-center gap-2 text-[14px] font-bold text-slate-700 dark:text-slate-300">
-                  <Phone size={13} className="text-red-900/40" />
-                  {m.soDienThoai || 'Chưa cập nhật'}
-               </div>
-               <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                  <MapPin size={11} className="text-slate-300" /> {m.queQuan || 'Bắc Hòa'}
-               </div>
-            </div>
-
-            <div className="w-[12%] flex justify-center">
-              <div className={`px-5 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-colors ${
-                m.trangThai === Status.Active ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'
-              }`}>
-                {m.trangThai === Status.Active ? 'Đang hát' : 'Tạm nghỉ'}
-              </div>
-            </div>
-
-            <div className="w-[14%] flex flex-col">
-               <span className="text-[14px] font-bold text-slate-800 dark:text-white leading-none">{new Date(m.ngayGiaNhap).toLocaleDateString('vi-VN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-               <span className="text-[9px] text-slate-400 font-bold uppercase mt-1 tracking-tighter opacity-50">Hệ thống v5.0</span>
-            </div>
-
-            {/* Managed Quick Icons */}
-            <div className="w-[6%] flex items-center justify-end gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
-               <button onClick={() => printMemberCard(m)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="In thẻ riêng"><Printer size={16} /></button>
-               <button onClick={() => handleOpenModal(m)} className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all" title="Chỉnh sửa"><Edit3 size={16} /></button>
-               <button onClick={() => { if(window.confirm('Xóa hồ sơ ca viên?')) { const u = members.filter(x => x.id !== m.id); setMembers(u); saveMembers(u); } }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Xóa"><Trash2 size={16} /></button>
-            </div>
+      {/* Filter Bar */}
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 rounded-[1.5rem] border border-black/5 shadow-sm flex flex-col md:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full group">
+             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+             <input 
+               type="text" 
+               placeholder="Tìm theo tên hoặc số điện thoại..." 
+               className="w-full pl-12 pr-6 py-3 bg-slate-50 dark:bg-slate-800 rounded-[1.2rem] border-none outline-none font-bold text-sm dark:text-white focus:ring-2 focus:ring-slate-200 transition-all"
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+             />
           </div>
-        ))}
+          <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-slate-800 rounded-[1.2rem] border border-black/5 shadow-sm min-w-[160px]">
+                <Filter size={14} className="text-slate-400" />
+                <select 
+                  className="bg-transparent outline-none font-black text-[10px] uppercase tracking-wider text-slate-500 cursor-pointer flex-1"
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                >
+                  <option value="All">TẤT CẢ VAI TRÒ</option>
+                  {Object.values(MemberRole).map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-slate-800 rounded-[1.2rem] border border-black/5 shadow-sm min-w-[160px]">
+                <UserCheck size={14} className="text-slate-400" />
+                <select 
+                  className="bg-transparent outline-none font-black text-[10px] uppercase tracking-wider text-slate-500 cursor-pointer flex-1"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
+                  <option value="All">TRẠNG THÁI</option>
+                  {Object.values(Status).map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+          </div>
       </div>
 
-      {/* Tabbed Membership Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-3xl z-[100] flex items-center justify-center p-6">
-           <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-[3rem] p-10 lg:p-14 flex flex-col lg:flex-row gap-12 shadow-2xl animate-in zoom-in-95 duration-300 relative border border-white/20 overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-3 burgundy-gradient"></div>
-              
-              <div className="lg:w-64 shrink-0 space-y-10">
-                 <div className="flex flex-col gap-5">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] ml-2">Hình chân dung</label>
-                    <div 
-                      className="w-full aspect-[4/5] bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-700 overflow-hidden relative flex items-center justify-center group cursor-pointer hover:border-red-900/40 transition-all shadow-inner"
-                      onClick={() => avatarInputRef.current?.click()}
-                    >
-                        {avatarPreview ? (
-                          <img src={avatarPreview} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                        ) : (
-                          <div className="flex flex-col items-center gap-4 opacity-10">
-                             <UserCircle size={60} strokeWidth={1} />
-                             <span className="text-[9px] font-bold uppercase tracking-widest text-center">Tải lên ảnh mới</span>
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-red-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white backdrop-blur-sm"><Camera size={40} /></div>
-                        <input ref={avatarInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) { const r = new FileReader(); r.onload = (ev) => setAvatarPreview(ev.target?.result as string); r.readAsDataURL(f); } }} />
+      {/* List View - Optimized for space */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl border border-black/5 overflow-hidden">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+              <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-black/5">
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest w-12">#</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Danh Tính Ca Viên</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bè / Vai Trò</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Liên Lạc</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngày Gia Nhập</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng Thái</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Hành Động</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/5">
+              {filteredMembers.map((m, idx) => (
+                <tr key={m.id} className="hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-all group">
+                  <td className="px-6 py-4 text-xs font-bold text-slate-300">{idx + 1}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                        {m.avatar ? <img src={m.avatar} className="w-full h-full object-cover" /> : <UserCircle size={28} className="text-slate-200" />}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase leading-none mb-1">{m.tenThanh || '---'}</span>
+                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase leading-none tracking-tight">{m.hoTen}</span>
+                      </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                       <div className="w-2 h-2 rounded-full bg-slate-200"></div>
+                       <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">{m.vaiTro}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                      <Phone size={14} className="text-amber-600/50" />
+                      {m.soDienThoai || '---'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-xs font-bold text-slate-500">
+                    {m.ngayGiaNhap || '---'}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                      m.trangThai === Status.Active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'
+                    }`}>
+                      {m.trangThai}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => printMemberCard(m)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="In thẻ thành viên"><Printer size={18} /></button>
+                      <button onClick={() => handleOpenModal(m)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-all"><Edit3 size={18} /></button>
+                      <button onClick={() => { if(window.confirm('Xóa vĩnh viễn hồ sơ?')) { const u = members.filter(x => x.id !== m.id); setMembers(u); saveMembers(u); } }} className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={18} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {filteredMembers.length === 0 && (
+          <div className="py-24 flex flex-col items-center justify-center text-slate-300 gap-6 opacity-40">
+            <Users size={100} strokeWidth={1} />
+            <p className="text-2xl font-black uppercase tracking-[0.5em]">Không tìm thấy dữ liệu</p>
+          </div>
+        )}
+      </div>
+
+      {/* MEMBER MODAL - Redesigned 3-Section Layout */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-3xl z-[100] flex items-center justify-center p-4">
+           <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[3.5rem] p-10 lg:p-14 shadow-2xl relative border border-white/10 animate-in zoom-in-95 duration-300 flex flex-col lg:flex-row gap-12 overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-3" style={{ backgroundColor: isSpring ? springColor : '#0f172a' }}></div>
+              
+              <div className="lg:w-64 shrink-0 flex flex-col gap-8">
+                 <div className="w-full aspect-square bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border-4 border-dashed border-slate-200 dark:border-slate-700 overflow-hidden relative flex flex-col items-center justify-center group cursor-pointer shadow-inner" onClick={() => avatarInputRef.current?.click()}>
+                    {avatarPreview ? (
+                      <img src={avatarPreview} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center opacity-10 flex flex-col items-center gap-4">
+                        <UserCircle size={80} strokeWidth={1} />
+                        <span className="text-[10px] font-black uppercase tracking-widest px-6 italic">Ảnh Hồ Sơ</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                      <Camera size={32} />
+                    </div>
+                    <input ref={avatarInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) { const r = new FileReader(); r.onload = (ev) => setAvatarPreview(ev.target?.result as string); r.readAsDataURL(f); } }} />
                  </div>
 
-                 {/* Tab Navigation */}
-                 <nav className="space-y-1.5">
-                    {[
-                      { id: 'personal', label: 'Thông tin cá nhân', icon: UserCircle },
-                      { id: 'contact', label: 'Thông tin liên hệ', icon: Mail },
-                      { id: 'role', label: 'Vai trò & Trạng thái', icon: Award }
-                    ].map(tab => (
-                      <button 
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
-                        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-widest transition-all ${
-                          activeTab === tab.id ? 'bg-[#1E1E1E] text-white shadow-xl scale-105' : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        <tab.icon size={18} /> {tab.label}
-                      </button>
-                    ))}
+                 <nav className="flex flex-col gap-2">
+                   {[
+                     { id: 'personal', label: 'Thông tin cá nhân', icon: UserCircle },
+                     { id: 'contact', label: 'Thông tin liên hệ', icon: Mail },
+                     { id: 'role', label: 'Vai trò & Trạng thái', icon: Award }
+                   ].map(tab => (
+                     <button 
+                       key={tab.id} 
+                       onClick={() => setActiveTab(tab.id as any)} 
+                       className={`w-full flex items-center gap-4 px-7 py-5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
+                         activeTab === tab.id 
+                            ? 'bg-slate-900 text-white shadow-xl translate-x-3' 
+                            : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                       }`}
+                     >
+                       <tab.icon size={18} /> {tab.label}
+                     </button>
+                   ))}
                  </nav>
               </div>
 
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col min-h-[480px]">
                  <div className="flex items-center justify-between mb-10">
                     <div>
-                      <h3 className="text-4xl font-bold uppercase dark:text-white tracking-tighter leading-none">Hồ sơ ca viên</h3>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.5em] mt-3">Hệ thống quản lý AngelChoir Cloud v5.0</p>
+                      <h3 className="text-4xl font-black uppercase tracking-tighter dark:text-white leading-none">Hồ Sơ Thành Viên</h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 tracking-[0.2em]">Cơ sở dữ liệu AngelChoir v5.8.2</p>
                     </div>
-                    <button onClick={() => setIsModalOpen(false)} className="p-5 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-lg"><X size={24} /></button>
+                    <button onClick={() => setIsModalOpen(false)} className="p-5 bg-slate-50 dark:bg-slate-800 rounded-3xl text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-lg"><X size={26} /></button>
                  </div>
 
-                 <form onSubmit={handleSave} className="flex-1 space-y-10 overflow-y-auto pr-6 no-scrollbar max-h-[55vh]">
+                 <form onSubmit={handleSave} className="flex-1 space-y-8 overflow-y-auto pr-4 no-scrollbar">
                     {activeTab === 'personal' && (
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-in slide-in-from-right-4 duration-500">
+                       <div className="grid grid-cols-2 gap-8 animate-in slide-in-from-right-4 duration-300">
                           <div className="space-y-3">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Tên Thánh</label>
-                            <input type="text" placeholder="Giuse / Maria..." className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none text-lg font-bold dark:text-white shadow-inner" value={formData.tenThanh || ''} onChange={e => setFormData({...formData, tenThanh: e.target.value})}/>
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Tên Thánh</label>
+                             <input type="text" className="w-full px-7 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none font-bold text-lg dark:text-white shadow-inner" placeholder="..." value={formData.tenThanh || ''} onChange={e => setFormData({...formData, tenThanh: e.target.value})}/>
                           </div>
                           <div className="space-y-3">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Họ và Tên</label>
-                            <input type="text" required placeholder="Họ và tên đầy đủ" className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none text-lg font-bold dark:text-white shadow-inner" value={formData.hoTen || ''} onChange={e => setFormData({...formData, hoTen: e.target.value})}/>
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Họ và Tên</label>
+                             <input ref={nameInputRef} type="text" required className="w-full px-7 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none font-bold text-lg dark:text-white shadow-inner" placeholder="..." value={formData.hoTen || ''} onChange={e => setFormData({...formData, hoTen: e.target.value})}/>
                           </div>
                           <div className="space-y-3">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Ngày sinh</label>
-                            <input type="date" className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none font-bold text-lg dark:text-white shadow-inner" value={formData.ngaySinh || ''} onChange={e => setFormData({...formData, ngaySinh: e.target.value})}/>
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Ngày sinh</label>
+                             <input type="date" className="w-full px-7 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none font-bold text-lg dark:text-white shadow-inner" value={formData.ngaySinh || ''} onChange={e => setFormData({...formData, ngaySinh: e.target.value})}/>
                           </div>
                           <div className="space-y-3">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Giới tính</label>
-                            <select className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none font-bold text-lg dark:text-white shadow-inner cursor-pointer" value={formData.gioiTinh} onChange={e => setFormData({...formData, gioiTinh: e.target.value as any})}><option value={Gender.Nam}>Nam giới</option><option value={Gender.Nu}>Nữ giới</option></select>
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Giới tính</label>
+                             <select className="w-full px-7 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none font-bold text-lg dark:text-white shadow-inner cursor-pointer" value={formData.gioiTinh} onChange={e => setFormData({...formData, gioiTinh: e.target.value as any})}><option value={Gender.Nam}>Nam</option><option value={Gender.Nu}>Nữ</option></select>
                           </div>
                        </div>
                     )}
                     
                     {activeTab === 'contact' && (
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-in slide-in-from-right-4 duration-500">
+                       <div className="grid grid-cols-1 gap-8 animate-in slide-in-from-right-4 duration-300">
                           <div className="space-y-3">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Số điện thoại</label>
-                            <input type="tel" placeholder="0xxx xxx xxx" className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none text-lg font-bold dark:text-white shadow-inner" value={formData.soDienThoai || ''} onChange={e => setFormData({...formData, soDienThoai: e.target.value})}/>
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Số điện thoại liên lạc</label>
+                             <div className="relative">
+                               <PhoneCall size={22} className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300" />
+                               <input type="tel" className="w-full px-16 py-6 bg-slate-50 dark:bg-slate-800 rounded-3xl border-none outline-none font-black text-2xl dark:text-white shadow-inner tracking-widest" placeholder="Không bắt buộc" value={formData.soDienThoai || ''} onChange={e => setFormData({...formData, soDienThoai: e.target.value})}/>
+                             </div>
                           </div>
                           <div className="space-y-3">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Quê quán</label>
-                            <input type="text" placeholder="Bắc Hòa / Xuân Lộc..." className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none text-lg font-bold dark:text-white shadow-inner" value={formData.queQuan || ''} onChange={e => setFormData({...formData, queQuan: e.target.value})}/>
-                          </div>
-                          <div className="col-span-full space-y-3">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Ghi chú hành vụ</label>
-                            <textarea rows={4} placeholder="..." className="w-full px-10 py-8 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border-none outline-none font-bold text-lg dark:text-white shadow-inner resize-none" value={formData.ghiChu || ''} onChange={e => setFormData({...formData, ghiChu: e.target.value})}></textarea>
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Địa chỉ cư trú</label>
+                             <div className="relative">
+                               <MapPin size={22} className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300" />
+                               <input type="text" className="w-full px-16 py-5 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none font-bold text-lg dark:text-white shadow-inner" placeholder="..." value={formData.queQuan || ''} onChange={e => setFormData({...formData, queQuan: e.target.value})}/>
+                             </div>
                           </div>
                        </div>
                     )}
 
                     {activeTab === 'role' && (
-                       <div className="space-y-10 animate-in slide-in-from-right-4 duration-500">
-                          <div className="grid grid-cols-2 gap-10">
-                             <div className="space-y-3">
-                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Vai trò phụng vụ</label>
-                                <select className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-900 rounded-full border-none outline-none text-lg font-bold dark:text-white shadow-inner" value={formData.vaiTro} onChange={e => setFormData({...formData, vaiTro: e.target.value as any})}>
-                                   {Object.values(MemberRole).map(r => <option key={r} value={r}>{r}</option>)}
-                                </select>
-                             </div>
-                             <div className="space-y-3">
-                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Trạng thái tham gia</label>
-                                <select className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-900 rounded-full border-none outline-none text-lg font-bold dark:text-white shadow-inner" value={formData.trangThai} onChange={e => setFormData({...formData, trangThai: e.target.value as any})}><option value={Status.Active}>Đang hoạt động</option><option value={Status.Inactive}>Tạm nghỉ hát</option></select>
-                             </div>
+                       <div className="grid grid-cols-2 gap-8 animate-in slide-in-from-right-4 duration-300">
+                          <div className="space-y-3">
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Bè hát / Vai trò</label>
+                             <select className="w-full px-7 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none font-bold text-lg dark:text-white shadow-inner cursor-pointer" value={formData.vaiTro} onChange={e => setFormData({...formData, vaiTro: e.target.value as any})}>{Object.values(MemberRole).map(r => <option key={r} value={r}>{r}</option>)}</select>
                           </div>
                           <div className="space-y-3">
-                             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-4">Ngày gia nhập ca đoàn</label>
-                             <input type="date" className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 rounded-full border-none outline-none font-bold text-lg dark:text-white shadow-inner" value={formData.ngayGiaNhap || ''} onChange={e => setFormData({...formData, ngayGiaNhap: e.target.value})}/>
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Trạng thái tham gia</label>
+                             <select className="w-full px-7 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border-none outline-none font-bold text-lg dark:text-white shadow-inner cursor-pointer" value={formData.trangThai} onChange={e => setFormData({...formData, trangThai: e.target.value as any})}><option value={Status.Active}>Đang hoạt động</option><option value={Status.Inactive}>Tạm nghỉ hát</option></select>
+                          </div>
+                          <div className="col-span-2 space-y-3">
+                             <label className="text-[11px] font-black text-slate-400 uppercase ml-4 tracking-widest">Ghi chú phụng sự</label>
+                             <textarea rows={4} className="w-full px-8 py-6 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border-none outline-none font-bold text-base dark:text-white shadow-inner resize-none" value={formData.ghiChu || ''} onChange={e => setFormData({...formData, ghiChu: e.target.value})} placeholder="Thêm nhận xét về chất giọng hoặc quá trình phụng sự..."></textarea>
                           </div>
                        </div>
                     )}
                  </form>
 
-                 <div className="pt-10 border-t border-slate-100 dark:border-slate-800 flex gap-4 mt-auto">
-                    <button 
-                      type="submit" 
-                      onClick={handleSave} 
-                      className="flex-1 py-7 burgundy-gradient text-white rounded-full text-[15px] font-bold uppercase tracking-[0.4em] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-6"
-                    >
-                       <Check size={28} strokeWidth={4} /> XÁC NHẬN LƯU TRỮ
+                 <div className="pt-10 border-t border-slate-100 dark:border-slate-800 mt-auto">
+                    <button type="submit" onClick={handleSave} 
+                       style={{ backgroundColor: isSpring ? springColor : '#1E293B' }}
+                       className="w-full py-7 text-white rounded-full text-[14px] font-black uppercase tracking-[0.4em] shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-5 border-2 border-white/10">
+                       <CheckCircle2 size={28} /> XÁC NHẬN LƯU HỒ SƠ
                     </button>
-                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-12 py-7 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-slate-200 transition-all">ĐÓNG</button>
                  </div>
               </div>
            </div>
         </div>
       )}
 
-      {/* Redesigned Premium Vertical ID Card Print Template */}
-      <div className="fixed -left-[20000px] top-0 pointer-events-none font-times">
+      {/* Vertical ID Card Template - Navy/Gold Style (Hidden) */}
+      <div className="fixed -left-[9999px] top-0">
         {filteredMembers.map(m => (
-          <div key={m.id} id={`print-template-${m.id}`} className="w-[540px] h-[860px] bg-white relative flex flex-col overflow-hidden" style={{ border: '2px solid #E2E8F0' }}>
-            {/* Top Branding Section */}
-            <div className="h-[400px] burgundy-gradient relative flex flex-col items-center pt-12 overflow-hidden">
-              {/* Background Accent Graphics */}
-              <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
-              <div className="absolute top-20 -right-20 w-60 h-60 bg-white/5 rounded-full blur-3xl"></div>
-              
-              {/* Header Text */}
-              <div className="text-[30px] font-black text-white/95 tracking-[0.5em] mb-2 uppercase drop-shadow-md">ANGELCHOIR</div>
-              <div className="text-[12px] font-bold text-[#D4AF37] tracking-[0.3em] uppercase opacity-80 mb-10">BẮC HÒA - XUÂN LỘC</div>
-              
-              {/* Profile Photo Frame */}
-              <div className="w-[320px] h-[380px] rounded-[4.5rem] bg-white p-3 shadow-2xl z-10 border-[10px] border-[#D4AF37] relative">
-                <div className="w-full h-full rounded-[3.5rem] overflow-hidden bg-slate-50 flex items-center justify-center">
-                  {m.avatar ? (
-                    <img src={m.avatar} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="flex flex-col items-center text-slate-200">
-                      <Users size={160} strokeWidth={1} />
-                      <span className="text-[12px] font-bold uppercase tracking-widest mt-4">Profile Image</span>
-                    </div>
-                  )}
-                </div>
-                {/* Status Indicator on Frame */}
-                <div className={`absolute -right-2 top-10 px-6 py-2 rounded-full border-4 border-white text-white text-[12px] font-black uppercase tracking-widest shadow-xl ${m.trangThai === Status.Active ? 'bg-emerald-500' : 'bg-red-500'}`}>
-                   {m.trangThai === Status.Active ? 'ACTIVE' : 'AWAY'}
-                </div>
-              </div>
-              
-              {/* Role Badge - Floating Overlay */}
-              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-14 py-6 bg-white text-[#7F1D1D] rounded-[2rem] text-[22px] font-black uppercase tracking-[0.1em] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] border-[8px] border-[#D4AF37] z-20 whitespace-nowrap min-w-[280px] text-center">
-                {m.vaiTro.toUpperCase()}
-              </div>
-            </div>
-
-            {/* Member Information Section */}
-            <div className="flex-1 pt-32 pb-16 px-16 flex flex-col items-center text-center">
-              <div className="mb-14 space-y-3">
-                <span className="text-[34px] font-black text-[#BC8F44] uppercase tracking-[0.4em] block leading-none drop-shadow-sm">{m.tenThanh}</span>
-                <h2 className="text-[56px] font-black text-[#0F172A] uppercase leading-none tracking-tighter">{m.hoTen}</h2>
-                <div className="w-[60px] h-1.5 bg-[#D4AF37] mx-auto mt-6 rounded-full opacity-60"></div>
-              </div>
-
-              {/* Contact Details */}
-              <div className="flex flex-col gap-6 mb-20 w-full px-8">
-                <div className="flex items-center justify-center gap-6 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-inner">
-                  <div className="w-12 h-12 rounded-full bg-red-900/10 flex items-center justify-center text-red-900">
-                    <Phone size={24} />
+          <div key={m.id} id={`card-template-${m.id}`} className="w-[540px] h-[860px] relative flex flex-col overflow-hidden navy-id-card">
+            {/* Gold Border Ornament */}
+            <div className="absolute inset-4 border-2 border-[#c5a059] pointer-events-none opacity-50"></div>
+            
+            {/* Header */}
+            <div className="h-[180px] flex flex-col items-center justify-center pt-8">
+               <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-[#c5a059] rounded-lg flex items-center justify-center shadow-lg">
+                     <Users size={24} className="text-[#0f172a]" strokeWidth={3} />
                   </div>
-                  <span className="text-[28px] font-black text-slate-800 tracking-wide font-times">{m.soDienThoai || 'CHƯA CẬP NHẬT'}</span>
-                </div>
-                
-                <div className="flex items-center justify-center gap-4 py-2 opacity-50">
-                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
-                  <span className="text-[14px] font-black uppercase tracking-[0.3em] text-slate-400">OFFICIAL MEMBER ID CARD</span>
-                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
-                </div>
-              </div>
+                  <h2 className="text-[28px] font-black gold-text uppercase tracking-[0.2em] leading-none">AngelChoir</h2>
+               </div>
+               <div className="h-0.5 w-32 bg-[#c5a059] mb-4"></div>
+               <h1 className="text-[36px] font-bold text-white uppercase tracking-[0.3em] leading-none italic">THẺ CA VIÊN</h1>
+            </div>
 
-              {/* Security & ID Verification Section */}
-              <div className="w-full mt-auto p-12 bg-slate-900 rounded-[5rem] border-4 border-[#D4AF37] flex items-center justify-between shadow-2xl relative overflow-hidden group">
-                {/* Geometric Accent */}
-                <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-white/5 rounded-full blur-2xl"></div>
-                
-                <div className="text-left relative z-10 flex flex-col justify-center">
-                  <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-4 opacity-70">DIGITAL IDENTITY</p>
-                  <div className="flex items-center gap-6">
-                    <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-[#D4AF37] border border-white/10">
-                      <Fingerprint size={32} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[38px] font-black text-white font-mono tracking-tighter leading-none">BH-{String(m.id).slice(-6)}</span>
-                      <span className="text-[9px] font-bold text-[#D4AF37] uppercase tracking-widest mt-1">Verified Member</span>
-                    </div>
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col items-center pt-6 px-12 text-center">
+               {/* Portrait */}
+               <div className="w-[320px] h-[320px] rounded-full border-[10px] border-[#c5a059] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] mb-10 bg-white">
+                  {m.avatar ? <img src={m.avatar} className="w-full h-full object-cover" /> : <UserCircle size={280} className="text-slate-100" />}
+               </div>
+
+               {/* Name - Serif Style */}
+               <div className="space-y-4 mb-8">
+                  <span className="text-[30px] font-bold gold-text uppercase italic leading-none block" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    {m.tenThanh || '---'}
+                  </span>
+                  <h2 className="text-[48px] font-black text-white uppercase tracking-tight leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    {m.hoTen}
+                  </h2>
+               </div>
+
+               {/* Role Badge */}
+               <div className="px-10 py-3 bg-[#c5a059] text-[#0f172a] rounded-full text-[20px] font-black uppercase tracking-[0.3em] shadow-xl mb-12">
+                  {m.vaiTro}
+               </div>
+
+               {/* QR Code Section */}
+               <div className="w-full flex items-center justify-between border-t border-[#c5a059]/30 pt-8">
+                  <div className="text-left space-y-3">
+                     <div className="flex items-center gap-3 text-white/70 text-[20px] font-bold">
+                        <Phone size={20} className="gold-text" /> {m.soDienThoai || '---'}
+                     </div>
+                     <div className="text-[12px] font-bold gold-text uppercase tracking-widest opacity-80">Mã Số: AC-{String(m.id).slice(-6)}</div>
+                     <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.4em]">QUẢN TRỊ VIÊN ANGELCHOIR</div>
                   </div>
-                </div>
-                
-                <div className="p-4 bg-white rounded-[2.5rem] border-[6px] border-[#D4AF37] shadow-2xl relative z-10">
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BH-MEMBER-${m.id}`} className="w-24 h-24" alt="QR" />
-                </div>
-              </div>
+                  <div className="p-4 bg-white rounded-3xl border-4 border-[#c5a059] shadow-2xl">
+                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MEMBER-${m.id}`} className="w-24 h-24" alt="QR ID" />
+                  </div>
+               </div>
             </div>
 
-            {/* Bottom Accent Bar */}
-            <div className="h-6 bg-[#D4AF37] w-full mt-auto flex">
-              <div className="h-full w-1/3 burgundy-gradient opacity-80"></div>
-              <div className="h-full w-2/3"></div>
-            </div>
+            {/* Bottom Accent */}
+            <div className="h-6 bg-[#c5a059] w-full"></div>
           </div>
         ))}
       </div>
-      
+
       {/* Global Printing Overlay */}
       {isPrinting && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-3xl z-[200] flex flex-col items-center justify-center text-white gap-8 font-times">
-           <div className="relative">
-              <Loader2 size={100} className="animate-spin text-[#D4AF37]" />
-              <Printer size={40} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white" />
-           </div>
-           <p className="text-3xl font-bold uppercase tracking-[0.4em] animate-pulse">Đang trích xuất thẻ định danh...</p>
+        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-3xl z-[200] flex flex-col items-center justify-center text-white gap-8">
+           <div className="w-20 h-20 border-8 border-white/10 border-t-amber-600 rounded-full animate-spin"></div>
+           <p className="text-2xl font-black uppercase tracking-[0.5em] animate-pulse">ĐANG KẾT XUẤT THẺ PVC PDF...</p>
         </div>
       )}
     </div>
