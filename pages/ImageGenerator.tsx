@@ -20,7 +20,8 @@ const ImageGenerator: React.FC = () => {
   const currentTheme = localStorage.getItem('theme') || 'light';
   const isSpring = currentTheme === 'spring';
 
-  const aspectRatios = ['1:1', '2:3', '3:2', '3:4', '4:3', '9:16', '16:9', '21:9'];
+  // Correcting aspect ratios to match supported values from guidelines
+  const aspectRatios = ['1:1', '3:4', '4:3', '9:16', '16:9'];
 
   const checkKey = async () => {
     // @ts-ignore
@@ -40,6 +41,7 @@ const ImageGenerator: React.FC = () => {
     setIsGenerating(true);
 
     try {
+      // Always create a fresh instance of GoogleGenAI before an API call
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-image-preview',
@@ -54,6 +56,7 @@ const ImageGenerator: React.FC = () => {
         }
       });
 
+      // Iterating through parts to find the image part as recommended
       // @ts-ignore
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
@@ -63,6 +66,7 @@ const ImageGenerator: React.FC = () => {
       }
     } catch (error: any) {
       if (error.message?.includes("Requested entity was not found")) {
+        // Reset key selection if entity is not found (mandatory project setup check)
         // @ts-ignore
         await window.aistudio.openSelectKey();
       } else {
@@ -118,7 +122,7 @@ const ImageGenerator: React.FC = () => {
 
               <div className="space-y-4">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Tỉ lệ khung hình</label>
-                 <div className="grid grid-cols-4 gap-2">
+                 <div className="grid grid-cols-5 gap-2">
                     {aspectRatios.map(ratio => (
                       <button 
                         key={ratio}
