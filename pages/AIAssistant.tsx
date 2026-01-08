@@ -2,11 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { 
-  Send, Cpu, Globe, Loader2, Sparkles, 
-  Trash2, BrainCircuit, ExternalLink, 
+  Send, Globe, Loader2, Sparkles, 
+  BrainCircuit, ExternalLink, 
   Zap
 } from 'lucide-react';
-import { getSpringColor, getMembers, getSchedules, getTransactions } from '../store';
+import { getSpringColor, getMembers, getTransactions } from '../store';
 import { Message } from '../types';
 
 const AIAssistant: React.FC = () => {
@@ -27,9 +27,10 @@ const AIAssistant: React.FC = () => {
   }, [messages, isThinking]);
 
   const handleSend = async () => {
-    if (!input.trim() || isThinking) return;
+    const textInput = input.trim();
+    if (!textInput || isThinking) return;
 
-    const userMsg: Message = { role: 'user', content: input, timestamp: Date.now() };
+    const userMsg: Message = { role: 'user', content: textInput, timestamp: Date.now() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsThinking(true);
@@ -50,7 +51,7 @@ const AIAssistant: React.FC = () => {
       if (mode === 'flash') {
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: input,
+          contents: [{ parts: [{ text: textInput }] }],
           config: { 
             systemInstruction,
             tools: [{ googleSearch: {} }] 
@@ -58,20 +59,20 @@ const AIAssistant: React.FC = () => {
         });
         
         const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => ({
-          title: chunk.web?.title || "Nguồn dữ liệu",
-          uri: chunk.web?.uri || "#"
+          title: String(chunk.web?.title || "Nguồn dữ liệu"),
+          uri: String(chunk.web?.uri || "#")
         })) || [];
 
         setMessages(prev => [...prev, { 
           role: 'model', 
-          content: response.text || "Yêu cầu của bạn đang được xử lý, nhưng tôi chưa tìm thấy kết quả phù hợp.",
+          content: String(response.text || "Yêu cầu của bạn đang được xử lý, nhưng tôi chưa tìm thấy kết quả phù hợp."),
           sources: sources,
           timestamp: Date.now() 
         }]);
       } else {
         const response = await ai.models.generateContent({
           model: 'gemini-3-pro-preview',
-          contents: input,
+          contents: [{ parts: [{ text: textInput }] }],
           config: { 
             systemInstruction,
             thinkingConfig: { thinkingBudget: 32768 } 
@@ -80,13 +81,17 @@ const AIAssistant: React.FC = () => {
 
         setMessages(prev => [...prev, { 
           role: 'model', 
-          content: response.text || "Phân tích chuyên sâu đã hoàn tất.", 
+          content: String(response.text || "Phân tích chuyên sâu đã hoàn tất."), 
           timestamp: Date.now() 
         }]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI Error:', error);
-      setMessages(prev => [...prev, { role: 'model', content: "Mất kết nối với Trung tâm AngelBrain. Hãy kiểm tra lại mạng hoặc khóa API.", timestamp: Date.now() }]);
+      setMessages(prev => [...prev, { 
+        role: 'model', 
+        content: `Mất kết nối với Trung tâm AngelBrain: ${error.message || "Lỗi không xác định"}.`, 
+        timestamp: Date.now() 
+      }]);
     } finally {
       setIsThinking(false);
     }
@@ -141,20 +146,20 @@ const AIAssistant: React.FC = () => {
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-5 duration-500`}>
               <div className={`max-w-[85%] rounded-[2.5rem] p-10 shadow-2xl border border-white/50 ${
                 msg.role === 'user' 
-                ? (isSpring ? `bg-[${springColor}] text-white` : 'bg-slate-800 text-white') 
+                ? 'bg-slate-800 text-white' 
                 : 'bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-200 backdrop-blur-md border border-white/30 dark:border-slate-800'
               }`}
               style={msg.role === 'user' && isSpring ? { backgroundColor: springColor } : {}}>
                 <div className="whitespace-pre-wrap text-sm leading-relaxed font-semibold">
-                  {msg.content}
+                  {String(msg.content)}
                 </div>
                 {msg.sources && msg.sources.length > 0 && (
                   <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4">Tham khảo từ trung tâm dữ liệu:</p>
                     <div className="flex flex-wrap gap-3">
                       {msg.sources.map((s, idx) => (
-                        <a key={idx} href={s.uri} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-2xl text-[10px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                          <ExternalLink size={12} /> {s.title}
+                        <a key={idx} href={String(s.uri)} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-2xl text-[10px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                          <ExternalLink size={12} /> {String(s.title)}
                         </a>
                       ))}
                     </div>

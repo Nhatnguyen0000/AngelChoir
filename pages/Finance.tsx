@@ -164,7 +164,6 @@ const Finance: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 animate-in zoom-in-95 duration-300">
           <div className="bg-white dark:bg-slate-950 w-full max-w-2xl rounded-[4rem] p-16 shadow-2xl relative border border-white/20">
-             {/* Fix: Added missing 'X' icon from lucide-react */}
              <button onClick={() => setIsModalOpen(false)} className="absolute top-10 right-10 p-4 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-3xl hover:bg-red-500 hover:text-white transition-all"><X size={24} /></button>
              <h3 className="text-4xl font-black uppercase tracking-tighter mb-10 dark:text-white">Thêm giao dịch</h3>
              <form onSubmit={handleSave} className="space-y-8">

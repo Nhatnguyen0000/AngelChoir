@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Music, Plus, Search, FileText, Download, X, Edit3, Trash2, Filter, Type, User2, Tag, Link as LinkIcon, Save } from 'lucide-react';
+import { Music, Plus, Search, FileText, Download, X, Edit3, Trash2, Filter, Type, User2, Tag, Link as LinkIcon, Save, Play } from 'lucide-react';
 import { getSongs, saveSongs, getSpringColor } from '../store';
 import { Song } from '../types';
 
@@ -40,27 +40,18 @@ const Songs: React.FC = () => {
 
   const handleOpenAdd = () => {
     setEditingSong(null);
-    setFormData({
-      title: '',
-      composer: '',
-      category: 'Lễ thường',
-      sheetMusicUrl: ''
-    });
+    setFormData({ title: '', composer: '', category: 'Lễ thường', sheetMusicUrl: '' });
     setIsModalOpen(true);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) return;
-
     let updatedSongs: Song[];
     if (editingSong) {
       updatedSongs = songs.map(s => s.id === editingSong.id ? { ...s, ...formData } as Song : s);
     } else {
-      const newSong: Song = {
-        ...formData as Song,
-        id: Date.now(),
-      };
+      const newSong: Song = { ...formData as Song, id: Date.now() };
       updatedSongs = [newSong, ...songs];
     }
     setSongs(updatedSongs);
@@ -68,22 +59,8 @@ const Songs: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài nhạc này khỏi thư viện?')) {
-      const updated = songs.filter(s => s.id !== id);
-      setSongs(updated);
-      saveSongs(updated);
-    }
-  };
-
-  const openEdit = (song: Song) => {
-    setEditingSong(song);
-    setFormData(song);
-    setIsModalOpen(true);
-  };
-
   return (
-    <div className="space-y-10 max-w-[1500px] mx-auto pb-24 px-4 animate-in fade-in duration-700">
+    <div className="space-y-10 max-w-[1600px] mx-auto pb-24 px-4 animate-in fade-in duration-700">
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1 ml-4">
            <h2 className={`text-4xl font-black uppercase tracking-tighter ${isSpring ? 'text-slate-800' : 'text-[#354E4D] dark:text-white'}`}>Thư Viện Nhạc</h2>
@@ -121,65 +98,66 @@ const Songs: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Grid of Song Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredSongs.map(song => (
-          <div key={song.id} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2.5rem] p-7 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-white dark:border-slate-800 flex flex-col justify-between h-72 group relative">
-            <div className="absolute top-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100 z-10">
-               <button onClick={() => openEdit(song)} className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100">
-                  <Edit3 size={14} />
-               </button>
-               <button onClick={() => handleDelete(song.id)} className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100">
-                  <Trash2 size={14} />
-               </button>
+          <div key={song.id} className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 shadow-xl border border-slate-100 dark:border-slate-800 group relative flex flex-col h-[320px] transition-all hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
+            
+            {/* Visual Cover Placeholder */}
+            <div className="h-32 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 rounded-2xl mb-5 flex items-center justify-center relative overflow-hidden group-hover:from-blue-50 group-hover:to-blue-100 transition-colors">
+               <Music size={40} className="text-slate-300 dark:text-slate-600 group-hover:text-blue-300 transition-colors" />
+               <div className="absolute top-3 right-3">
+                  <span className="text-[8px] font-black bg-white dark:bg-slate-950 px-2 py-1 rounded-lg uppercase tracking-widest text-slate-500 shadow-sm">
+                    {song.category}
+                  </span>
+               </div>
+               {/* Hidden Actions */}
+               <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm">
+                  <button onClick={() => { setEditingSong(song); setFormData(song); setIsModalOpen(true); }} className="p-3 bg-white text-slate-900 rounded-xl hover:scale-110 transition-transform"><Edit3 size={16} /></button>
+                  <button onClick={() => { if(window.confirm('Xóa?')) { const u = songs.filter(s => s.id !== song.id); setSongs(u); saveSongs(u); } }} className="p-3 bg-white text-red-500 rounded-xl hover:scale-110 transition-transform"><Trash2 size={16} /></button>
+               </div>
             </div>
-            <div className="flex items-start justify-between">
-              <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-[#BC8F44] transition-colors shadow-inner border border-black/5">
-                <Music size={26} />
+
+            <div className="flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase leading-tight line-clamp-2 mb-2" title={song.title}>
+                  {song.title}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <User2 size={12} className="text-slate-400" />
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">
+                    {song.composer || 'Khuyết danh'}
+                  </p>
+                </div>
               </div>
-              <span className="text-[8px] font-black text-[#BC8F44] bg-[#BC8F44]/10 px-3 py-1.5 rounded-xl uppercase tracking-widest border border-[#BC8F44]/20">
-                {song.category}
-              </span>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-lg font-black text-slate-800 dark:text-white mb-1 uppercase tracking-tight line-clamp-2 leading-tight">
-                {song.title}
-              </h3>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate flex items-center gap-1.5">
-                <Edit3 size={10} className="opacity-50" /> {song.composer || 'Khuyết danh'}
-              </p>
-            </div>
-            <div className="flex gap-3 mt-4 pt-4 border-t border-slate-50 dark:border-slate-800">
-              <a 
-                href={song.sheetMusicUrl || '#'} 
-                target="_blank" 
-                rel="noreferrer"
-                style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#354E4D' }} 
-                className={`flex-1 py-3.5 text-white rounded-[1.2rem] text-[9px] font-black tracking-widest uppercase hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2 ${!song.sheetMusicUrl ? 'opacity-30 cursor-not-allowed' : ''}`}
-              >
-                <FileText size={14} /> BẢN NHẠC
-              </a>
-              <button className="w-12 h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-[1.2rem] hover:bg-white dark:hover:bg-slate-700 transition-all shadow-inner border border-black/5" title="Tải xuống nhanh">
-                <Download size={18} />
-              </button>
+
+              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-3">
+                 <a 
+                   href={song.sheetMusicUrl || '#'} 
+                   target="_blank" 
+                   rel="noreferrer"
+                   style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#0F172A' }}
+                   className={`flex-1 py-3 text-white rounded-xl text-[9px] font-black tracking-widest uppercase hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2 ${!song.sheetMusicUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+                 >
+                   <FileText size={14} /> Xem PDF
+                 </a>
+              </div>
             </div>
           </div>
         ))}
-        {filteredSongs.length === 0 && (
-          <div className="col-span-full py-20 flex flex-col items-center gap-4 opacity-20">
-             <Music size={64} />
-             <p className="text-sm font-black uppercase tracking-[0.5em]">Kho nhạc trống</p>
-          </div>
-        )}
+        
+        {/* Add New Placeholder */}
+        <button onClick={handleOpenAdd} className="rounded-[2.5rem] border-4 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3 text-slate-300 hover:border-blue-400 hover:text-blue-400 transition-all min-h-[320px]">
+           <Plus size={40} />
+           <span className="text-xs font-black uppercase tracking-widest">Thêm bài mới</span>
+        </button>
       </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-3xl z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
            <div className="bg-white dark:bg-slate-950 w-full max-w-2xl rounded-[3rem] shadow-2xl relative border border-white/20 animate-in zoom-in-95 duration-300 overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-2" style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#354E4D' }}></div>
-              
-              <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 p-3 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg z-10">
-                <X size={20} />
-              </button>
+              <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 p-3 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg z-10"><X size={20} /></button>
               
               <div className="p-10 lg:p-12">
                 <div className="flex items-center gap-4 mb-10">
@@ -194,14 +172,10 @@ const Songs: React.FC = () => {
                    </div>
                 </div>
 
-                <form onSubmit={handleSave} className="space-y-8">
-                   <div className="space-y-6">
+                <form onSubmit={handleSave} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                           <div className="flex items-center gap-2 ml-4 mb-1">
-                              <Type size={12} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tên bài hát</label>
-                           </div>
+                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Tên bài hát</label>
                            <input 
                              type="text" required placeholder="Ví dụ: Cao Cung Lên"
                              className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-sm font-bold dark:text-white shadow-inner focus:ring-2 transition-all" 
@@ -211,10 +185,7 @@ const Songs: React.FC = () => {
                            />
                         </div>
                         <div className="space-y-2">
-                           <div className="flex items-center gap-2 ml-4 mb-1">
-                              <User2 size={12} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nhạc sĩ / Tác giả</label>
-                           </div>
+                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nhạc sĩ / Tác giả</label>
                            <input 
                              type="text" placeholder="Tên nhạc sĩ hoặc Khuyết danh"
                              className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-sm font-bold dark:text-white shadow-inner focus:ring-2 transition-all" 
@@ -227,31 +198,20 @@ const Songs: React.FC = () => {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 ml-4 mb-1">
-                               <Tag size={12} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
-                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Thể loại</label>
-                            </div>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Thể loại</label>
                             <select 
                               className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-sm font-bold dark:text-white shadow-inner focus:ring-2 transition-all cursor-pointer appearance-none" 
                               style={{ '--tw-ring-color': isSpring ? springColor + '30' : '#BC8F4430' } as any}
                               value={formData.category || 'Lễ thường'} 
                               onChange={e => setFormData({...formData, category: e.target.value})}
                             >
-                               <option value="Lễ thường">LỄ THƯỜNG</option>
-                               <option value="Mùa Vọng">MÙA VỌNG</option>
-                               <option value="Giáng Sinh">GIÁNG SINH</option>
-                               <option value="Mùa Chay">MÙA CHAY</option>
-                               <option value="Phục Sinh">PHỤC SINH</option>
-                               <option value="Đức Mẹ">ĐỨC MẸ</option>
-                               <option value="Thánh Tâm">THÁNH TÂM</option>
-                               <option value="Khác">KHÁC</option>
+                               {['Lễ thường', 'Mùa Vọng', 'Giáng Sinh', 'Mùa Chay', 'Phục Sinh', 'Đức Mẹ', 'Thánh Tâm', 'Khác'].map(opt => (
+                                 <option key={opt} value={opt}>{opt.toUpperCase()}</option>
+                               ))}
                             </select>
                          </div>
                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 ml-4 mb-1">
-                               <LinkIcon size={12} style={isSpring ? { color: springColor } : { color: '#BC8F44' }} />
-                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Link bản nhạc (PDF/Image)</label>
-                            </div>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Link bản nhạc</label>
                             <input 
                               type="url" placeholder="https://example.com/sheet.pdf"
                               className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none outline-none text-sm font-bold dark:text-white shadow-inner focus:ring-2 transition-all" 
@@ -261,7 +221,6 @@ const Songs: React.FC = () => {
                             />
                          </div>
                       </div>
-                   </div>
 
                    <div className="flex gap-4 pt-6">
                       <button 

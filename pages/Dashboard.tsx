@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Users, Calendar, Music, TrendingUp, BellRing, ArrowRight } from 'lucide-react';
 import { getMembers, getSchedules, getSongs, getNotice, getSpringColor } from '../store';
 
@@ -20,6 +20,10 @@ const Dashboard: React.FC = () => {
     { label: 'ĐIỂM CỐNG HIẾN', value: members.reduce((acc, m) => acc + m.points, 0), icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50' },
   ];
 
+  const topContributors = useMemo(() => {
+    return [...members].sort((a, b) => b.points - a.points).slice(0, 3);
+  }, [members]);
+
   return (
     <div className="max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-700">
       <div className="flex flex-col gap-1 ml-4">
@@ -35,8 +39,8 @@ const Dashboard: React.FC = () => {
                  <stat.icon size={20} />
               </div>
               <div>
-                <h4 className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-0.5">{stat.label}</h4>
-                <p className={`text-2xl font-black tracking-tighter leading-none ${isSpring ? 'text-slate-800' : 'text-[#0F172A] dark:text-white'}`}>{stat.value}</p>
+                <h4 className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-0.5">{String(stat.label)}</h4>
+                <p className={`text-2xl font-black tracking-tighter leading-none ${isSpring ? 'text-slate-800' : 'text-[#0F172A] dark:text-white'}`}>{String(stat.value)}</p>
               </div>
             </div>
           </div>
@@ -44,7 +48,6 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-         {/* Optimized Notice Card - More Compact */}
          {notice.isVisible && (
            <div 
              style={isSpring ? { backgroundColor: springColor } : { backgroundColor: '#1E293B' }}
@@ -58,11 +61,11 @@ const Dashboard: React.FC = () => {
                     <span className="text-[9px] font-black tracking-[0.2em] uppercase opacity-70">Thông báo hệ thống</span>
                  </div>
                  
-                 <h3 className="text-xl font-black uppercase tracking-tight mb-2 leading-none">{notice.title}</h3>
-                 <p className="text-white/80 text-[11px] font-medium leading-snug mb-4 max-w-md line-clamp-2">{notice.content}</p>
+                 <h3 className="text-xl font-black uppercase tracking-tight mb-2 leading-none">{String(notice.title)}</h3>
+                 <p className="text-white/80 text-[11px] font-medium leading-snug mb-4 max-w-md line-clamp-2">{String(notice.content)}</p>
                  
                  <button className="px-5 py-2 bg-white text-slate-900 rounded-xl text-[9px] font-black tracking-widest uppercase hover:scale-105 transition-all flex items-center gap-2">
-                   {notice.buttonText} <ArrowRight size={10} />
+                   {String(notice.buttonText)} <ArrowRight size={10} />
                  </button>
               </div>
               
@@ -71,33 +74,31 @@ const Dashboard: React.FC = () => {
                  <span className="text-[8px] font-black uppercase tracking-widest mt-2 opacity-50">AngelChoir</span>
               </div>
 
-              {/* Decorative Background Elements */}
               <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
               <Music size={120} className="absolute -right-6 -bottom-8 opacity-5 pointer-events-none rotate-12" />
            </div>
          )}
 
-         {/* Top Contributors */}
          <div className={`${notice.isVisible ? 'lg:col-span-5' : 'lg:col-span-12'} p-6 bg-white dark:bg-slate-900 rounded-[2rem] shadow-lg border border-white dark:border-slate-800 flex flex-col justify-center min-h-[160px]`}>
             <div className="flex items-center justify-between mb-4 border-b border-slate-50 dark:border-slate-800 pb-2">
                <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">CA VIÊN GƯƠNG MẪU</h3>
                <TrendingUp size={14} className="text-[#BC8F44] opacity-50" />
             </div>
             <div className="space-y-1">
-               {members.length > 0 ? (
-                 members.sort((a,b) => b.points - a.points).slice(0, 3).map((m, idx) => (
+               {topContributors.length > 0 ? (
+                 topContributors.map((m, idx) => (
                    <div key={m.id} className="flex items-center justify-between py-2.5 group cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 px-3 rounded-xl transition-all">
                       <div className="flex items-center gap-3">
                          <span className={`text-[10px] font-black ${idx < 3 ? 'text-[#BC8F44]' : 'text-slate-300'} w-4`}>{(idx + 1).toString().padStart(2, '0')}</span>
                          <div style={isSpring ? { backgroundColor: springColor + '10', color: springColor } : { backgroundColor: '#BC8F4410', color: '#BC8F44' }} className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-[9px] uppercase shadow-inner">
-                            {m.hoTen[0]}
+                            {String(m.hoTen?.[0] || '?')}
                          </div>
                          <div>
-                            <span className={`text-[11px] font-black uppercase tracking-tight ${isSpring ? 'text-slate-800' : 'text-[#0F172A] dark:text-white'} block`}>{m.hoTen}</span>
-                            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{m.vaiTro}</span>
+                            <span className={`text-[11px] font-black uppercase tracking-tight ${isSpring ? 'text-slate-800' : 'text-[#0F172A] dark:text-white'} block`}>{String(m.hoTen)}</span>
+                            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{String(m.vaiTro)}</span>
                          </div>
                       </div>
-                      <span className="text-[9px] font-black text-[#BC8F44] bg-[#BC8F44]/5 px-2 py-0.5 rounded border border-[#BC8F44]/10">{m.points} pts</span>
+                      <span className="text-[9px] font-black text-[#BC8F44] bg-[#BC8F44]/5 px-2 py-0.5 rounded border border-[#BC8F44]/10">{String(m.points)} pts</span>
                    </div>
                  ))
                ) : (

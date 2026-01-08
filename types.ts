@@ -22,6 +22,7 @@ export interface ThanhVien {
   id: number;
   tenThanh: string;
   hoTen: string;
+  avatar?: string; // New field for profile picture
   ngaySinh: string; // Định dạng YYYY-MM-DD
   gioiTinh: Gender;
   queQuan: string;
